@@ -7,3 +7,5 @@ docs/build
 # Compiled Python
 **/**/__pycache__
 
+# Build files
+**/**/*.egg-info

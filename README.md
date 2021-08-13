@@ -33,3 +33,23 @@ You can then create the documentation as follows
     cd docs/
     make clean && make html
 
+Installation
+------------
+
+To install the package one simply issues
+
+    python3.9 -m pip install .
+
+If you would like to install the package in editable mode, you can use
+
+    python3.9 -m pip install --editable .
+
+In editable mode, you can pull the latest code and the package will automatically be up to date on your system. 
+However, if command line features have been added (console scripts in setup.py), to access them you will need to issue
+the commands
+
+    python3.9 -m pip uninstall algos
+    puthon3.9 -m pip install --editable .
+
+This will create the new entry points that your shell can use.
+
