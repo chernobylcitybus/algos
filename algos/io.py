@@ -52,12 +52,16 @@ def convert_anystr(any_str: Union[str, bytes]) -> str:
 
 
 class ReadStdIn:
+    """
+    A class that has multiple methods for reading stdin inputs.
+
+    :ivar logging.Logger logger: The logger for this class.
+    """
     def __init__(self):
-
         # Get the logger
-        self.logger = logging.getLogger("algos.io.ReadStdIn")
+        self.logger: logging.Logger = logging.getLogger("algos.io.ReadStdIn")
 
-    def int(self) -> int:
+    def integer(self) -> int:
         """
         Reads an integer from :code:`stdin`. This function expects a single line of input with only an integer present. If
         the input value is not an integer, the program exits.
