@@ -44,7 +44,7 @@ If you would like to install the package in editable mode, you can use
 
     python3.9 -m pip install --editable .
 
-In editable mode, you can pull the latest code and the package will automatically be up to date on your system. 
+In editable mode, you can pull the latest code, and the package will automatically be up to date on your system. 
 However, if command line features have been added (console scripts in setup.py), to access them you will need to issue
 the commands
 
