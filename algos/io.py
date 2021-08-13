@@ -1,7 +1,7 @@
 import os
 import sys
 import logging
-from typing import TypeVar, Any, Union
+from typing import TypeVar, Any, Union, Optional
 
 
 # Set up the logger for the module
@@ -10,9 +10,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s [%(lineno)d] %(message)s "
 )
 
-# Get the logger
-logger = logging.getLogger("algos.io")
-"""Logger for this module."""
+
 
 NumArrTypes = TypeVar("NumArrTypes", list[int], list[float])
 """Generic variable for numeric arrays."""
@@ -53,96 +51,100 @@ def convert_anystr(any_str: Union[str, bytes]) -> str:
     return return_value
 
 
-def readint() -> int:
-    """
-    Reads an integer from :code:`stdin`. This function expects a single line of input with only an integer present. If
-    the input value is not an integer, the program exits.
+class ReadStdIn:
+    def __init__(self):
 
-    :rtype: int
-    :return: The integer held in the :code:`stdin` buffer.
-    """
-    # Initialize storage.
-    value: int = 0
+        # Get the logger
+        self.logger = logging.getLogger("algos.io.ReadStdIn")
 
-    # Read the line first.
-    stdin_input_str: Union[str, bytes] = sys.stdin.readline()
+    def int(self) -> int:
+        """
+        Reads an integer from :code:`stdin`. This function expects a single line of input with only an integer present. If
+        the input value is not an integer, the program exits.
+    
+        :rtype: int
+        :return: The integer held in the :code:`stdin` buffer.
+        """
+        # Initialize storage.
+        value: int = 0
+    
+        # Read the line first.
+        stdin_input_str: Union[str, bytes] = sys.stdin.readline()
+    
+        # The function is expecting a single integer input. We must handle the case where the input is a single integer.
+        try:
+            # The input was a recognizable integer.
+            value = int(stdin_input_str)
+        except ValueError as err:
+            # The input was not a recognizable integer. Log the error and exit the program.
+            self.logger.critical(
+                "int - " + str(err) +
+                "\nInput: " + convert_anystr(stdin_input_str)
+            )
+            flush_buffers_and_exit(os.EX_DATAERR)
+    
+        return value
+    
+    def array(self, typ: str) -> list[Any]:
+        """
+        Reads in an array of a given type from :code:`stdin`. If the elements within :code:`stdin` are not all of the
+        correct type, the program exits.
+    
+        :param str typ: The type of the elements of the list.
+        :rtype: list[Any]
+        :return: A list created from the :code:`stdin` input line.
+        """
+        # Initialize storage.
+        if typ == "int" or typ == "float" or typ == "str":
+            array: Union[list[int], list[float], list[str]]
+        else:
+            self.logger.critical("self.array - Unsupported Type\nInput " + str(typ))
+            flush_buffers_and_exit(os.EX_DATAERR)
+    
+        # Read the line.
+        stdin_input_str: Union[str, bytes] = sys.stdin.readline()
+    
+        # We attempt to map the input to a list of appropriate type.
+        try:
+            # All the entries in the input line were of the correct type.
+            if typ == "int":
+                array = list(map(int, stdin_input_str.split()))
+            elif typ == "float":
+                array = list(map(float, stdin_input_str.split()))
+            if typ == "str":
+                array = list(map(str, stdin_input_str.split()))
+    
+        except ValueError as err:
+            # At least one of the entries in the input line was of an incorrect type. We log the error message and exit
+            # with an os.EX_DATAERR.
+            self.logger.critical(
+                "self.array - " + str(err) +
+                "\nInput: " + convert_anystr(stdin_input_str)
+            )
+            flush_buffers_and_exit(os.EX_DATAERR)
+    
+        return array
 
-    # The function is expecting a single integer input. We must handle the case where the input is a single integer.
-    try:
-        # The input was a recognizable integer.
-        value = int(stdin_input_str)
-    except ValueError as err:
-        # The input was not a recognizable integer. Log the error and exit the program.
-        logger.critical(
-            "readint - " + str(err) +
-            "\nInput: " + convert_anystr(stdin_input_str)
-        )
-        flush_buffers_and_exit(os.EX_DATAERR)
-
-    return value
-
-
-def readarray(typ: str) -> list[Any]:
-    """
-    Reads in an array of a given type from :code:`stdin`. If the elements within :code:`stdin` are not all of the
-    correct type, the program exits.
-
-    :param str typ: The type of the elements of the list.
-    :rtype: list[Any]
-    :return: A list created from the :code:`stdin` input line.
-    """
-    # Initialize storage.
-    if typ == "int" or typ == "float" or typ == "str":
-        array: Union[list[int], list[float], list[str]]
-    else:
-        logger.critical("readarray - Unsupported Type\nInput " + str(typ))
-        flush_buffers_and_exit(os.EX_DATAERR)
-
-    # Read the line.
-    stdin_input_str: Union[str, bytes] = sys.stdin.readline()
-
-    # We attempt to map the input to a list of appropriate type.
-    try:
-        # All the entries in the input line were of the correct type.
-        if typ == "int":
-            array = list(map(int, stdin_input_str.split()))
-        elif typ == "float":
-            array = list(map(float, stdin_input_str.split()))
-        if typ == "str":
-            array = list(map(str, stdin_input_str.split()))
-
-    except ValueError as err:
-        # At least one of the entries in the input line was of an incorrect type. We log the error message and exit
-        # with an os.EX_DATAERR.
-        logger.critical(
-            "readarray - " + str(err) +
-            "\nInput: " + convert_anystr(stdin_input_str)
-        )
-        flush_buffers_and_exit(os.EX_DATAERR)
-
-    return array
-
-
-def readmatrix(n: int) -> list[list[int]]:
-    """
-    Reads an :math:`n*n` matrix from stdin. The input is expected to consist solely of integers.
-
-    :param int n: The dimension of the square matrix.
-    :rtype: list[list[int]]
-    :return: A list of lists of integers representing the matrix.
-    """
-    # Create the list to store the results.
-    M: list = []
-
-    # For each line of input from stdin.
-    for lines in range(n):
-        # Read in the values as an array.
-        row: list[int] = readarray("int")
-
-        # Check that the length of the row is equal to n.
-        assert len(row) == n
-
-        # Append the row to storage.
-        M.append(row)
-
-    return M
+    def matrix(self, n: int) -> list[list[int]]:
+        """
+        Reads an :math:`n*n` matrix from stdin. The input is expected to consist solely of integers.
+    
+        :param int n: The dimension of the square matrix.
+        :rtype: list[list[int]]
+        :return: A list of lists of integers representing the matrix.
+        """
+        # Create the list to store the results.
+        M: list = []
+    
+        # For each line of input from stdin.
+        for lines in range(n):
+            # Read in the values as an array.
+            row: list[int] = self.array("int")
+    
+            # Check that the length of the row is equal to n.
+            assert len(row) == n
+    
+            # Append the row to storage.
+            M.append(row)
+    
+        return M
