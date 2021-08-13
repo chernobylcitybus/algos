@@ -10,8 +10,6 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s [%(lineno)d] %(message)s "
 )
 
-
-
 NumArrTypes = TypeVar("NumArrTypes", list[int], list[float])
 """Generic variable for numeric arrays."""
 

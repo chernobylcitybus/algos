@@ -10,7 +10,7 @@ Welcome to Algos's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   io
 
 Indices and tables
 ==================
