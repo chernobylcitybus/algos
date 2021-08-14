@@ -45,6 +45,9 @@ class ReadStdIn:
     :ivar logging.Logger logger: The logger for this class.
     """
     def __init__(self):
+        """
+        Initialize the logger for the class.
+        """
         # Get the logger
         self.logger: logging.Logger = logging.getLogger("algos.io.ReadStdIn")
 
