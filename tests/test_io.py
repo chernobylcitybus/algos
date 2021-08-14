@@ -77,7 +77,7 @@ class TestReadStdIn:
         DataReadStdIn.integer__expected,
         ids=[repr(v) for v in DataReadStdIn.integer__expected]
     )
-    def test_integer__expected_input(self, monkeypatch, test_input, expected):
+    def test_integer__expected(self, monkeypatch, test_input, expected):
         """
         Test that the :meth:`.ReadStdIn.integer` method works properly for expected inputs. Test input can be found
         in :attr:`DataReadStdIn.integer__expected` .
@@ -96,7 +96,7 @@ class TestReadStdIn:
         DataReadStdIn.integer__unexpected,
         ids=[repr(v) for v in DataReadStdIn.integer__unexpected]
     )
-    def test_integer__unexpected_input(self, monkeypatch, test_input, error):
+    def test_integer__unexpected(self, monkeypatch, test_input, error):
         """
         Test that the :meth:`.ReadStdIn.integer` raises exceptions for unexpected inputs. Test input can be found
         in :attr:`DataReadStdIn.integer__unexpected` .
@@ -116,7 +116,7 @@ class TestReadStdIn:
         DataReadStdIn.array__expected,
         ids=[repr(v) for v in DataReadStdIn.array__expected]
     )
-    def test_array__expected_input(self, monkeypatch, test_input, expected):
+    def test_array__expected(self, monkeypatch, test_input, expected):
         """
         Test that the :meth:`.ReadStdIn.array` method works properly for expected inputs. Test input can be found
         in :attr:`DataReadStdIn.array__expected` .
@@ -139,7 +139,7 @@ class TestReadStdIn:
         DataReadStdIn.array__unexpected,
         ids=[repr(v) for v in DataReadStdIn.array__unexpected]
     )
-    def test_array__unexpected_input(self, monkeypatch, test_input, error):
+    def test_array__unexpected(self, monkeypatch, test_input, error):
         """
         Test that the :meth:`.ReadStdIn.array` raises exceptions for unexpected inputs. Test input can be found
         in :attr:`DataReadStdIn.array__unexpected` .
@@ -163,7 +163,7 @@ class TestReadStdIn:
         DataReadStdIn.matrix__expected,
         ids=[repr(v) for v in DataReadStdIn.matrix__expected]
     )
-    def test_matrix__expected_input(self, monkeypatch, test_input, expected):
+    def test_matrix__expected(self, monkeypatch, test_input, expected):
         """
         Test that the :meth:`.ReadStdIn.matrix` method works properly for expected inputs. Test input can be found
         in :attr:`DataReadStdIn.matrix__expected` .
