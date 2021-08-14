@@ -6,4 +6,4 @@ install:
   - pip install .
 # command to run tests
 script:
-  - pytest -sv
+  - pytest -sv --cov=algos/ tests
