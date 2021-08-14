@@ -41,6 +41,8 @@ class DataReadStdIn:
     array__unexpected = [
         (("int", "1 2 a"), ValueError),
         (("int", "1 2 3.0"), ValueError),
+        (("float", "1 2 a"), ValueError),
+        (("hello", "a b c"), ValueError)
     ]
     """
     Test cases for :meth:`.ReadStdIn.array`, testing that it raises an error for unexpected inputs.
