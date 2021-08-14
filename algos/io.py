@@ -1,3 +1,6 @@
+"""
+A general module that contains a variety of helper classes supporting input/output operations.
+"""
 import os
 import sys
 import logging

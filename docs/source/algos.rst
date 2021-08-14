@@ -1,0 +1,6 @@
+Algos Package
+=============
+
+.. toctree::
+
+   io

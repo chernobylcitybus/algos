@@ -10,7 +10,8 @@ Welcome to Algos's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   io
+   algos
+   tests
 
 Indices and tables
 ==================

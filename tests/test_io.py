@@ -1,3 +1,6 @@
+"""
+The test module for :mod:`algos.io` .
+"""
 import io
 import pytest
 from algos.io import ReadStdIn
