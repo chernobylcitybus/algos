@@ -38,6 +38,13 @@ class DataReadStdIn:
     Test cases for :meth:`.ReadStdIn.array`, testing that it functions correctly for expected inputs.
     """
 
+    array__unexpected = [
+        (("int", "1 2 a"), ValueError),
+        (("int", "1 2 3.0"), ValueError),
+    ]
+    """
+    Test cases for :meth:`.ReadStdIn.array`, testing that it raises an error for unexpected inputs.
+    """
 
 class TestReadStdIn:
     """
@@ -53,13 +60,13 @@ class TestReadStdIn:
         Test that the :meth:`.ReadStdIn.integer` method works properly for expected inputs. Test input can be found
         in :attr:`DataReadStdIn.integer__expected` .
         """
-        # Monkeypatch stdin to hold the value we want the program to read as input
+        # Monkeypatch stdin to hold the value we want the program to read as input.
         monkeypatch.setattr('sys.stdin', io.StringIO(test_input))
 
-        # Create the instance
+        # Create the reader instance.
         reader = ReadStdIn()
 
-        # Check that the value is the same as the monkeypatched value
+        # Check that the value is the same as the monkeypatched value.
         assert reader.integer() == expected
 
     @pytest.mark.parametrize(
@@ -72,12 +79,13 @@ class TestReadStdIn:
         Test that the :meth:`.ReadStdIn.integer` raises exceptions for unexpected inputs. Test input can be found
         in :attr:`DataReadStdIn.integer__unexpected` .
         """
-        # Monkeypatch stdin to hold the value we want the program to read as input
+        # Monkeypatch stdin to hold the value we want the program to read as input.
         monkeypatch.setattr('sys.stdin', io.StringIO(test_input))
 
-        # Create the instance
+        # Create the reader instance.
         reader = ReadStdIn()
 
+        # Check that the exception is raised.
         with pytest.raises(error):
             reader.integer()
 
@@ -98,8 +106,32 @@ class TestReadStdIn:
         # Monkeypatch stdin to hold the value we want the program to read as input.
         monkeypatch.setattr('sys.stdin', io.StringIO(input_str))
 
-        # Create the instance
+        # Create the reader instance.
         reader = ReadStdIn()
 
-        # Check that the value is the same as the monkeypatched value
+        # Check that the value is the same as the monkeypatched value.
         assert reader.array(input_type) == expected
+
+    @pytest.mark.parametrize(
+        "test_input,error",
+        DataReadStdIn.array__unexpected,
+        ids=[repr(v) for v in DataReadStdIn.array__unexpected]
+    )
+    def test_array__unexpected_input(self, monkeypatch, test_input, error):
+        """
+        Test that the :meth:`.ReadStdIn.array` raises exceptions for unexpected inputs. Test input can be found
+        in :attr:`DataReadStdIn.array__unexpected` .
+        """
+        # Reassign input array to meaningful names.
+        input_type = test_input[0]
+        input_str = test_input[1]
+
+        # Monkeypatch stdin to hold the value we want the program to read as input
+        monkeypatch.setattr('sys.stdin', io.StringIO(input_str))
+
+        # Create the reader instance.
+        reader = ReadStdIn()
+
+        # Check that the exception is raised.
+        with pytest.raises(error):
+            reader.array(input_type)
