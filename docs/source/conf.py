@@ -16,6 +16,8 @@ import sys
 sys.path.insert(0, os.path.abspath('../../algos/'))
 sys.path.insert(0, os.path.abspath('../../tests/'))
 
+master_doc = 'index'
+
 # -- Project information -----------------------------------------------------
 
 project = 'Algos'
