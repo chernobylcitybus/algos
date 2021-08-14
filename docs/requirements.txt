@@ -1,0 +1,8 @@
+sphinx
+sphinx-rtd-theme
+pytest
+pytest-cov
+mypy
+flake8
+docstr-coverage
+coveralls
