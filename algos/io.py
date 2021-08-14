@@ -64,9 +64,10 @@ class ReadStdIn:
 
     def integer(self) -> int:
         """
-        Reads an integer from :code:`stdin`. This function expects a single line of input with only an integer present. If
-        the input value is not an integer, the program exits.
-    
+        Reads an integer from :code:`stdin`. This function expects a single line of input with only an integer present.
+        If the input value is not an integer, the program raises an error.
+
+        :raises ValueError: If the string is not a recognizable integer.
         :rtype: int
         :return: The integer held in the :code:`stdin` buffer.
         """
@@ -81,13 +82,13 @@ class ReadStdIn:
             # The input was a recognizable integer.
             value = int(stdin_input_str)
         except ValueError as err:
-            # The input was not a recognizable integer. Log the error and exit the program.
+            # The input was not a recognizable integer. Log the error and raise exception.
             self.logger.critical(
-                "int - " + str(err) +
+                "integer - " + str(err) +
                 "\nInput: " + convert_anystr(stdin_input_str)
             )
-            flush_buffers_and_exit(os.EX_DATAERR)
-    
+            raise ValueError(err)
+
         return value
     
     def array(self, typ: str) -> list[Any]:
