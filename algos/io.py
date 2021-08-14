@@ -20,20 +20,6 @@ NumMatTypes = TypeVar("NumMatTypes", list[list[int]], list[list[float]])
 """Generic variable for numeric matrices."""
 
 
-def flush_buffers_and_exit(error: int) -> None:
-    """
-    A convenience function to flush stdout and stderr buffers and exit the program with a given OS return value.
-
-    :param int error: An OS return value from :mod:`os`.
-    """
-    # Flush the buffers.
-    sys.stdout.flush()
-    sys.stderr.flush()
-
-    # Exit
-    sys.exit(error)
-
-
 def convert_anystr(any_str: Union[str, bytes]) -> str:
     """
     Helper function to take an :class:`.Union[str, bytes]` type and return :class:`str` output. Returns :class:`str` input
