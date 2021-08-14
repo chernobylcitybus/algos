@@ -94,8 +94,10 @@ class ReadStdIn:
     def array(self, typ: str) -> list[Any]:
         """
         Reads in an array of a given type from :code:`stdin`. If the elements within :code:`stdin` are not all of the
-        correct type, the program exits.
-    
+        correct type, the program raises an exception.
+
+        :raises ValueError: If the typ argument is not a supported type.
+        :raises ValueError: If the inputs are unsuccessful in mapping to the given type.
         :param str typ: The type of the elements of the list.
         :rtype: list[Any]
         :return: A list created from the :code:`stdin` input line.
@@ -122,7 +124,7 @@ class ReadStdIn:
     
         except ValueError as err:
             # At least one of the entries in the input line was of an incorrect type. We log the error message and
-            # raise ValueError
+            # raise ValueError.
             self.logger.critical(
                 "self.array - " + str(err) +
                 "\nInput: " + convert_anystr(stdin_input_str)

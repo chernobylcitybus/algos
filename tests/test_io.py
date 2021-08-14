@@ -6,7 +6,7 @@ import pytest
 from algos.io import ReadStdIn
 
 
-data__integer__expected_input = [
+data__integer__expected = [
     ("1", 1),
     ("-1", -1),
     ("0", 0),
@@ -16,7 +16,7 @@ data__integer__expected_input = [
 Test cases for :meth:`.ReadStdIn.integer`, testing that it functions correctly for expected inputs.
 """
 
-data__integer__unexpected_input = [
+data__integer__unexpected = [
     ("a", ValueError),
     ("", ValueError),
     ("0.01", ValueError)
@@ -26,14 +26,26 @@ Test cases for :meth:`.ReadStdIn.integer`, testing that it raises an error for u
 """
 
 
+data__array__expected = [
+    (("int", "1 2 3"), [1, 2, 3]),
+    (("float", "1.0 2.0 3.0"), [1.0, 2.0, 3.0]),
+    (("float", "1.0 2 3"), [1.0, 2.0, 3.0]),
+    (("str", "a b c"), ["a", "b", "c"]),
+    (("str", "1 2 3"), ["1", "2", "3"]),
+    (("str", "apple banana carrot"), ["apple", "banana", "carrot"])
+]
+"""
+Test cases for :meth:`.ReadStdIn.array`, testing that it functions correctly for expected inputs.
+"""
+
 class TestReadStdIn:
     """
     Test cases for :class:`.ReadStdIn`.
     """
     @pytest.mark.parametrize(
         "test_input,expected",
-        data__integer__expected_input,
-        ids=[repr(v) for v in data__integer__expected_input]
+        data__integer__expected,
+        ids=[repr(v) for v in data__integer__expected]
     )
     def test_integer__expected_input(self, monkeypatch, test_input, expected):
         """
@@ -50,8 +62,8 @@ class TestReadStdIn:
 
     @pytest.mark.parametrize(
         "test_input,error",
-        data__integer__unexpected_input,
-        ids=[repr(v) for v in data__integer__unexpected_input]
+        data__integer__unexpected,
+        ids=[repr(v) for v in data__integer__unexpected]
     )
     def test_integer__unexpected_input(self, monkeypatch, test_input, error):
         """
@@ -65,3 +77,25 @@ class TestReadStdIn:
 
         with pytest.raises(error):
             reader.integer()
+
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        data__array__expected,
+        ids=[repr(v) for v in data__array__expected]
+    )
+    def test_array__expected_input(self, monkeypatch, test_input, expected):
+        """
+        Test that the :meth:`.ReadStdIn.array` method works properly for expected inputs.
+        """
+        # Reassign input array to meaningful names.
+        input_type = test_input[0]
+        input_str = test_input[1]
+
+        # Monkeypatch stdin to hold the value we want the program to read as input.
+        monkeypatch.setattr('sys.stdin', io.StringIO(input_str))
+
+        # Create the instance
+        reader = ReadStdIn()
+
+        # Check that the value is the same as the monkeypatched value
+        assert reader.array(input_type) == expected
