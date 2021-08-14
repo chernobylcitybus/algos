@@ -2,6 +2,7 @@ Algos
 =====
 
 [![Build Status](https://travis-ci.com/8563a236e65cede7b14220e65c70ad5718144a3/algos.svg?branch=master)](https://travis-ci.com/8563a236e65cede7b14220e65c70ad5718144a3/algos)
+[![Coverage Status](https://coveralls.io/repos/github/8563a236e65cede7b14220e65c70ad5718144a3/algos/badge.svg)](https://coveralls.io/github/8563a236e65cede7b14220e65c70ad5718144a3/algos)
 
 Introduction
 ------------
