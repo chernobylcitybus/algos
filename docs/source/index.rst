@@ -11,7 +11,7 @@ Welcome to Algos's documentation!
    :caption: Contents:
 
    algos
-
+   tests
 
 Indices and tables
 ==================
