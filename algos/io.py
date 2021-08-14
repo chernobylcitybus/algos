@@ -132,6 +132,13 @@ class ReadStdIn:
         :rtype: list[list[int]]
         :return: A list of lists of integers representing the matrix.
         """
+        # Check that n is valid
+        if n < 1:
+            self.logger.critical(
+                "matrix - invalid n specified: " + str(n)
+            )
+            raise ValueError("Invalid value for n")
+
         # Create the list to store the results.
         M: list = []
     
@@ -152,3 +159,13 @@ class ReadStdIn:
             M.append(row)
     
         return M
+
+    def string(self) -> list[str]:
+        """
+        Reads all the lines contained within stdin as a string and yields each line as an element of a list.
+
+        :return: The lines read in from stdin as a list.
+        """
+        a: list[str] = "".join(sys.stdin.readlines()).split("\n")
+
+        return a

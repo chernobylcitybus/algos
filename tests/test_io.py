@@ -4,7 +4,12 @@ The test module for :mod:`algos.io` .
 import io
 import textwrap
 import pytest
-from algos.io import ReadStdIn
+from algos.io import ReadStdIn, convert_anystr
+
+
+def test_convert_anystr():
+    assert isinstance(convert_anystr("hello"), str)
+    assert isinstance(convert_anystr(b"hello"), str)
 
 
 class DataReadStdIn:
@@ -65,6 +70,26 @@ class DataReadStdIn:
     ]
     """
     Test cases for :meth:`.ReadStdIn.matrix`, testing that it functions correctly for expected inputs.
+    """
+
+    matrix__unexpected = [
+        ((2, "1 2\n4 6 7"), ValueError),
+        ((2, ""), ValueError),
+        ((0, ""), ValueError),
+        ((-1, ""), ValueError),
+    ]
+    """
+    Test cases for :meth:`.ReadStdIn.matrix`, testing that it raises an error for unexpected inputs.
+    """
+
+    string__expected = [
+        ("", [""]),
+        ("abc", ["abc"]),
+        ("abc\ndef", ["abc", "def"]),
+        ("hello world\nhow are you?", ["hello world", "how are you?"])
+    ]
+    """
+    Test cases for :meth:`.ReadStdIn.string`, testing that it functions correctly for expected inputs.
     """
 
 
@@ -180,3 +205,46 @@ class TestReadStdIn:
 
         # Check that the value is the same as the monkeypatched value.
         assert reader.matrix(n) == expected
+
+    @pytest.mark.parametrize(
+        "test_input,error",
+        DataReadStdIn.matrix__unexpected,
+        ids=[repr(v) for v in DataReadStdIn.matrix__unexpected]
+    )
+    def test_matrix__unexpected(self, monkeypatch, test_input, error):
+        """
+        Test that the :meth:`.ReadStdIn.matrix` raises exceptions for unexpected inputs. Test input can be found
+        in :attr:`DataReadStdIn.matrix__unexpected` .
+        """
+        # Reassign input array to meaningful names.
+        n = test_input[0]
+        input_str = test_input[1]
+
+        # Monkeypatch stdin to hold the value we want the program to read as input
+        monkeypatch.setattr('sys.stdin', io.StringIO(input_str))
+
+        # Create the reader instance.
+        reader = ReadStdIn()
+
+        # Check that the exception is raised.
+        with pytest.raises(error):
+            reader.matrix(n)
+
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        DataReadStdIn.string__expected,
+        ids=[repr(v) for v in DataReadStdIn.string__expected]
+    )
+    def test_string__expected(self, monkeypatch, test_input, expected):
+        """
+        Test that the :meth:`.ReadStdIn.string` method works properly for expected inputs. Test input can be found
+        in :attr:`DataReadStdIn.string__expected` .
+        """
+        # Monkeypatch stdin to hold the value we want the program to read as input.
+        monkeypatch.setattr('sys.stdin', io.StringIO(test_input))
+
+        # Create the reader instance.
+        reader = ReadStdIn()
+
+        # Check that the value is the same as the monkeypatched value.
+        assert reader.string() == expected
