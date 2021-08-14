@@ -1,6 +1,8 @@
 Algos
 =====
 
+![Your Repository’s Stats](https://github-readme-stats.vercel.app/api?username=8563a236e65cede7b14220e65c70ad5718144a3&show_icons=true)
+
 Introduction
 ------------
 
