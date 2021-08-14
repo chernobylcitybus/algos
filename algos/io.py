@@ -106,11 +106,15 @@ class ReadStdIn:
         if typ == "int" or typ == "float" or typ == "str":
             array: Union[list[int], list[float], list[str]]
         else:
-            self.logger.critical("self.array - Unsupported Type\nInput " + str(typ))
+            self.logger.critical("array - Unsupported Type\nInput " + str(typ))
             raise ValueError("Unsupported Type")
     
         # Read the line.
         stdin_input_str: Union[str, bytes] = sys.stdin.readline()
+
+        # Handle the case of empty input.
+        if stdin_input_str == "":
+            raise ValueError("Empty input")
     
         # We attempt to map the input to a list of appropriate type.
         try:
@@ -126,7 +130,7 @@ class ReadStdIn:
             # At least one of the entries in the input line was of an incorrect type. We log the error message and
             # raise ValueError.
             self.logger.critical(
-                "self.array - " + str(err) +
+                "array - " + str(err) +
                 "\nInput: " + convert_anystr(stdin_input_str)
             )
             raise ValueError(err)
@@ -135,7 +139,8 @@ class ReadStdIn:
 
     def matrix(self, n: int) -> list[list[int]]:
         """
-        Reads an :math:`n*n` matrix from stdin. The input is expected to consist solely of integers.
+        Reads an :math:`n*n` matrix from stdin. The input is expected to consist solely of integers. Only reads
+        square matrices.
     
         :param int n: The dimension of the square matrix.
         :rtype: list[list[int]]
@@ -149,8 +154,13 @@ class ReadStdIn:
             # Read in the values as an array.
             row: list[int] = self.array("int")
     
-            # Check that the length of the row is equal to n.
-            assert len(row) == n
+            # Check that the length of the row is equal to n. If it is not, log error and raise ValueError.
+            if len(row) != n:
+                self.logger.critical(
+                    "matrix - input row not of length " + str(n) +
+                    "\nInput: " + repr(row)
+                )
+                raise ValueError("Row lengths not equal")
     
             # Append the row to storage.
             M.append(row)

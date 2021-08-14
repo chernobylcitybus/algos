@@ -2,6 +2,7 @@
 The test module for :mod:`algos.io` .
 """
 import io
+import textwrap
 import pytest
 from algos.io import ReadStdIn
 
@@ -40,6 +41,7 @@ class DataReadStdIn:
 
     array__unexpected = [
         (("int", "1 2 a"), ValueError),
+        (("int", ""), ValueError),
         (("int", "1 2 3.0"), ValueError),
         (("float", "1 2 a"), ValueError),
         (("hello", "a b c"), ValueError)
@@ -47,6 +49,24 @@ class DataReadStdIn:
     """
     Test cases for :meth:`.ReadStdIn.array`, testing that it raises an error for unexpected inputs.
     """
+
+    matrix__expected = [
+        (
+            (3, "1 2 3\n4 5 6\n7 8 9"),
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+        ),
+        (
+            (2, "1 2\n4 6"),
+            [[1, 2],
+             [4, 6]]
+        ),
+    ]
+    """
+    Test cases for :meth:`.ReadStdIn.matrix`, testing that it functions correctly for expected inputs.
+    """
+
 
 class TestReadStdIn:
     """
@@ -137,3 +157,26 @@ class TestReadStdIn:
         # Check that the exception is raised.
         with pytest.raises(error):
             reader.array(input_type)
+
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        DataReadStdIn.matrix__expected,
+        ids=[repr(v) for v in DataReadStdIn.matrix__expected]
+    )
+    def test_matrix__expected_input(self, monkeypatch, test_input, expected):
+        """
+        Test that the :meth:`.ReadStdIn.matrix` method works properly for expected inputs. Test input can be found
+        in :attr:`DataReadStdIn.matrix__expected` .
+        """
+        # Reassign input array to meaningful names.
+        n = test_input[0]
+        input_str = test_input[1]
+
+        # Monkeypatch stdin to hold the value we want the program to read as input.
+        monkeypatch.setattr('sys.stdin', io.StringIO(input_str))
+
+        # Create the reader instance.
+        reader = ReadStdIn()
+
+        # Check that the value is the same as the monkeypatched value.
+        assert reader.matrix(n) == expected
