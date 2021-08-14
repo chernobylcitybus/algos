@@ -5,6 +5,10 @@
 # Required
 version: 2
 
+# Build on testing image
+build:
+  image: testing
+
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
    configuration: docs/conf.py
