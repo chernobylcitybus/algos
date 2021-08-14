@@ -105,7 +105,7 @@ class ReadStdIn:
             array: Union[list[int], list[float], list[str]]
         else:
             self.logger.critical("self.array - Unsupported Type\nInput " + str(typ))
-            flush_buffers_and_exit(os.EX_DATAERR)
+            raise ValueError("Unsupported Type")
     
         # Read the line.
         stdin_input_str: Union[str, bytes] = sys.stdin.readline()
@@ -121,13 +121,13 @@ class ReadStdIn:
                 array = list(map(str, stdin_input_str.split()))
     
         except ValueError as err:
-            # At least one of the entries in the input line was of an incorrect type. We log the error message and exit
-            # with an os.EX_DATAERR.
+            # At least one of the entries in the input line was of an incorrect type. We log the error message and
+            # raise ValueError
             self.logger.critical(
                 "self.array - " + str(err) +
                 "\nInput: " + convert_anystr(stdin_input_str)
             )
-            flush_buffers_and_exit(os.EX_DATAERR)
+            raise ValueError(err)
     
         return array
 
