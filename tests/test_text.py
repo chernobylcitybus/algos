@@ -38,9 +38,15 @@ def test_anagrams__expected(test_input, expected):
     Test that the :func:`.anagrams` function works properly for expected inputs. Test input can be found
     in :attr:`DataText.anagrams__expected` .
     """
+    # Assign the input to the test_input.
     word_set = test_input
-    expected = expected
+
+    # Find the anagrams.
     anagrams_found = anagrams(word_set)
+
+    # Sort in order to compare generated anagrams against expected value.
     anagrams_found = [sorted(x) for x in anagrams_found]
     anagrams_found.sort()
+
+    # Check that the output is as expected.
     assert anagrams_found == expected
