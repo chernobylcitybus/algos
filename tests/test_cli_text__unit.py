@@ -51,8 +51,8 @@ class TestAnagrams:
     )
     def test_anagrams__expected(self, monkeypatch, capsys, test_input, expected):
         """
-        Test that the :func:`.anagrams` function works properly for expected inputs. Test input can be found
-        in :attr:`DataText.anagrams__expected` .
+        Test that the :func:`algoscli.text.TextCLI.anagrams` function works properly for expected inputs. Test input
+        can be found in :attr:`DataText.anagrams__expected` .
         """
         # Command line arguments
         cli_argv = ["algos-text", "anagrams"]
