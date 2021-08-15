@@ -39,15 +39,6 @@ class DataText:
     Test cases for :func:`.anagrams`, testing that it functions correctly for expected inputs.
     """
 
-    anagrams__unexpected = [
-        (set(), ValueError),
-        (["hello"], TypeError),
-        ({1, 2, 3}, TypeError)
-    ]
-    """
-    Test cases for :func:`.anagrams`, testing that it raises an error for unexpected inputs.
-    """
-
 
 class TestAnagrams:
     """
