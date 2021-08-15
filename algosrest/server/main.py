@@ -22,10 +22,10 @@ app = FastAPI()
 @app.post("/text/anagrams/")
 async def anagrams(json_data: Request):
     """
-    Handler for :func:`algos.text.anagrams` .
+    App route for :func:`algosrest.server.text.TextREST.anagrams` .
 
     :param Request json_data: JSON data from post request.
-    :return:
+    :return: The JSON encoded anagrams list of lists of strings.
     """
     # Instantiate the REST helper.
     text = TextREST()

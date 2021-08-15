@@ -12,6 +12,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s [%(lineno)d] %(message)s "
 )
 
+
 class TextREST:
     """
     Class that contains all text based algorithms' REST implementations.
@@ -28,7 +29,14 @@ class TextREST:
     def anagrams(self, json_request: dict[str, Any]) -> list[list[str]]:
         """
         REST handler for :func:`algos.text.anagrams` . The expected input is a dictionary with the key 'input',
-        and a string as the value.
+        and a string as the value. Handles the ``/text/anagrams`` endpoint. With the REST server started, and ``curl``
+        installed, you can try a command of the form
+
+        .. code-block:: bash
+
+           $ curl --header "Content-Type: application/json" --request POST \\
+               --data '{"input": "below on the elbow is the bowel"}' http://localhost:8081/text/anagrams
+           [["below","bowel","elbow"]]
 
         :param dict[str, Any] json_request: The loaded JSON request.
         :rtype: list[list[str]]
