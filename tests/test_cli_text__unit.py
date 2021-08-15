@@ -1,5 +1,6 @@
 """
-The test module for :mod:`algoscli.main.test` .
+The unit test module for :mod:`algoscli.main.text` . Command line stdin input is essentially mocked and we capture
+standard output through capsys to verify the results.
 """
 import io
 import sys

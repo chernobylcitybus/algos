@@ -1,5 +1,6 @@
 """
-The test module for :func:`algoscli.main.text` .
+The integration test module for :func:`algoscli.main.text` . The command line as it would appear in the shell is tested
+using subprocesses. Its output is captured and then compared to the expected values.
 """
 import subprocess
 import pytest
