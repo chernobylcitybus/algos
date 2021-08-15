@@ -1,12 +1,8 @@
 """
-The test module for :mod:`algoscli.text` .
+The test module for :func:`algoscli.main.text` .
 """
-import io
-import sys
 import subprocess
 import pytest
-from unittest.mock import patch
-from algoscli.main import text
 
 
 class DataText:
@@ -51,7 +47,7 @@ class DataText:
 
 class TestAnagrams:
     """
-    Test class for :func:`.
+    Test class for :meth:`algoscli.text.TextCLI.anagrams`.
     """
     @pytest.mark.parametrize(
         "test_input,expected",

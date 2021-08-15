@@ -1,5 +1,5 @@
 """
-The test module for :mod:`algoscli.text` .
+The test module for :mod:`algoscli.main.test` .
 """
 import io
 import sys
@@ -50,7 +50,7 @@ class DataText:
 
 class TestAnagrams:
     """
-    Test class for :func:`.
+    Test class for :meth:`algoscli.text.TextCLI.anagrams`.
     """
     @pytest.mark.parametrize(
         "test_input,expected",
