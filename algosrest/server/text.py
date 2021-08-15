@@ -4,6 +4,7 @@ Module that provides REST handlers for text based algorithms. These algorithms a
 import logging
 from typing import Any, Optional
 from algos.text import anagrams
+from fastapi import HTTPException
 
 # Set up the logger for the module
 logging.basicConfig(
@@ -39,12 +40,12 @@ class TextREST:
         # Raise error if no "input" key found.
         if input_value is None:
             self.logger.critical("anagrams - 'input' not found")
-            raise ValueError("'input' not found")
+            raise HTTPException(status_code=400, detail="'input' not found")
 
         # If the input is not a string, raise a TypeError.
         if not isinstance(input_value, str):
             self.logger.critical("anagrams - Unsupported Type " + str(type(input_value)))
-            raise TypeError("Unsupported Type")
+            raise HTTPException(status_code=400, detail="Unsupported Type")
 
         # For typing sake, be explicit that we are now working with a string.
         input_str: str = input_value
