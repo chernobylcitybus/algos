@@ -1,10 +1,9 @@
 """
 A general module that contains a variety of helper classes supporting input/output operations.
 """
-import os
 import sys
 import logging
-from typing import TypeVar, Any, Union, Optional
+from typing import TypeVar, Any, Union
 
 
 # Set up the logger for the module
@@ -22,8 +21,8 @@ NumMatTypes = TypeVar("NumMatTypes", list[list[int]], list[list[float]])
 
 def convert_anystr(any_str: Union[str, bytes]) -> str:
     """
-    Helper function to take an :class:`.Union[str, bytes]` type and return :class:`str` output. Returns :class:`str` input
-    unmodified but decodes :class:`bytes` input to :class:`str`.
+    Helper function to take an :class:`.Union[str, bytes]` type and return :class:`str` output. Returns :class:`str`
+    input unmodified but decodes :class:`bytes` input to :class:`str`.
 
     :param typing.Union[str, bytes] any_str: The :class:`str` or :class:`bytes` object to coerce.
     :rtype: str
@@ -91,11 +90,16 @@ class ReadStdIn:
         :rtype: list[Any]
         :return: A list created from the :code:`stdin` input line.
         """
+        # Check that typ input is a string
+        if not isinstance(typ, str):
+            self.logger.critical("array - Unsupported Input Type\nInput " + str(type(typ)))
+            raise TypeError("array - Unsupported Input Type: - " + str(type(typ)))
+
         # Initialize storage.
         if typ == "int" or typ == "float" or typ == "str":
             array: Union[list[int], list[float], list[str]]
         else:
-            self.logger.critical("array - Unsupported Type\nInput " + str(typ))
+            self.logger.critical("array - Unsupported Type\nInput " + typ)
             raise ValueError("Unsupported Type")
     
         # Read the line.
@@ -135,6 +139,11 @@ class ReadStdIn:
         :rtype: list[list[int]]
         :return: A list of lists of integers representing the matrix.
         """
+        # Check that the input type of n is correct:
+        if not isinstance(n, int):
+            self.logger.critical("matrix - Unsupported Input Type\nInput " + str(type(n)))
+            raise TypeError("matrix - Invalid Input Type: " + str(type(n)))
+
         # Check that n is valid
         if n < 1:
             self.logger.critical(

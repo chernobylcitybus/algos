@@ -49,7 +49,8 @@ class DataReadStdIn:
         (("int", ""), ValueError),
         (("int", "1 2 3.0"), ValueError),
         (("float", "1 2 a"), ValueError),
-        (("hello", "a b c"), ValueError)
+        (("hello", "a b c"), ValueError),
+        ((["int"], "1 2 3"), TypeError)
     ]
     """
     Test cases for :meth:`.ReadStdIn.array`, testing that it raises an error for unexpected inputs.
@@ -77,6 +78,7 @@ class DataReadStdIn:
         ((2, ""), ValueError),
         ((0, ""), ValueError),
         ((-1, ""), ValueError),
+        (([0], ""), TypeError)
     ]
     """
     Test cases for :meth:`.ReadStdIn.matrix`, testing that it raises an error for unexpected inputs.
