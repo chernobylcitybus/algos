@@ -14,7 +14,22 @@ component_functions: dict[str, list[Function]] = {
 
 
 class TextCLI:
-    def anagrams(self):
+    """
+    Class that wraps text command line functionality.
+    """
+    def anagrams(self) -> None:
+        """
+        Reads character input from stdin and finds all words which are anagrams of each other in the input string.
+        Prints to stdout.
+
+        A typical usage might be
+
+        .. code-block:: bash
+
+           echo "below on the elbow is the bowel" | algos-text anagrams
+           [['elbow', 'below', 'bowel']]
+
+        """
         reader: ReadStdIn = ReadStdIn()
         words: str = reader.string()
         words_set = set(" ".join(words).split())
