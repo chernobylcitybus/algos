@@ -1,7 +1,6 @@
 """
 The test module for :mod:`algos.text` .
 """
-import io
 import pytest
 from algos.text import anagrams
 
@@ -35,6 +34,7 @@ class DataText:
     """
     Test cases for :func:`.anagrams`, testing that it raises an error for unexpected inputs.
     """
+
 
 class TestAnagrams:
     @pytest.mark.parametrize(
