@@ -52,6 +52,10 @@ class TextREST:
         # Turn the input string into a set of words.
         word_set: set[str] = set(input_str.split())
 
+        # If the input is empty, just pass in the empty set.
+        if len(word_set) == 0:
+            word_set = {""}
+
         # Find the anagrams.
         result: list[list[str]] = anagrams(word_set)
 

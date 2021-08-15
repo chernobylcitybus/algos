@@ -27,3 +27,14 @@ Integration
    :members:
    :undoc-members:
    :show-inheritance:
+
+REST Server
+-----------
+
+Unit
++++++
+
+.. automodule:: tests.test_rest_server_text__unit
+   :members:
+   :undoc-members:
+   :show-inheritance:
