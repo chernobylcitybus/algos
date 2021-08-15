@@ -23,7 +23,7 @@ class DataText:
         )
     ]
     """
-    Test cases for :func:`.anagrams`, testing that it functions correctly for expected inputs.
+    Test cases for :func:`algos.text.anagrams`, testing that it functions correctly for expected inputs.
     """
 
     anagrams__unexpected = [
@@ -32,7 +32,7 @@ class DataText:
         ({1, 2, 3}, TypeError)
     ]
     """
-    Test cases for :func:`.anagrams`, testing that it raises an error for unexpected inputs.
+    Test cases for :func:`algos.text.anagrams`, testing that it raises an error for unexpected inputs.
     """
 
 
@@ -44,7 +44,7 @@ class TestAnagrams:
     )
     def test_anagrams__expected(self, test_input, expected):
         """
-        Test that the :func:`.anagrams` function works properly for expected inputs. Test input can be found
+        Test that the :func:`algos.text.anagrams` function works properly for expected inputs. Test input can be found
         in :attr:`DataText.anagrams__expected` .
         """
         # Assign a meaningful name to the test set.
@@ -67,7 +67,7 @@ class TestAnagrams:
     )
     def test_anagrams__unexpected(self, test_input, error):
         """
-        Test that the :func:`.anagrams` raises exceptions for unexpected inputs. Test input can be found
+        Test that the :func:`algos.text.anagrams` raises exceptions for unexpected inputs. Test input can be found
         in :attr:`DataText.anagrams__unexpected` .
         """
         # Check if error is raised.
