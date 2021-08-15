@@ -3,6 +3,7 @@ The test module for :mod:`algoscli.text` .
 """
 import io
 import sys
+import subprocess
 import pytest
 from unittest.mock import patch
 from algoscli.main import text
@@ -57,28 +58,23 @@ class TestAnagrams:
         DataText.anagrams__expected,
         ids=[str(v) for v in range(len(DataText.anagrams__expected))]
     )
-    def test_anagrams__expected(self, monkeypatch, capsys, test_input, expected):
+    def test_anagrams__expected(self, test_input, expected):
         """
         Test that the :func:`.anagrams` function works properly for expected inputs. Test input can be found
         in :attr:`DataText.anagrams__expected` .
         """
-        # Command line arguments
-        cli_argv = ["algos-text", "anagrams"]
-
         # stdin input
         stdin_input = " ".join(list(test_input))
 
-        # Monkeypatch stdin to hold the value we want the program to read as input.
-        monkeypatch.setattr('sys.stdin', io.StringIO(stdin_input))
+        # Run a subprocess with the command line
+        captured = subprocess.check_output("echo \"" + stdin_input + "\" | algos-text anagrams", shell=True)
 
-        # Patch sys.argv to have correct cli arguments.
-        with patch.object(sys, "argv", cli_argv):
-            # Find the anagrams.
-            text()
-            captured = capsys.readouterr()
+        # Decode to string.
+        if isinstance(captured, bytes):
+            captured = captured.decode()
 
         # Sort in order to compare generated anagrams against expected value.
-        anagrams_found = eval(captured.out)
+        anagrams_found = eval(captured)
         anagrams_found = [sorted(x) for x in anagrams_found]
         anagrams_found.sort()
 
