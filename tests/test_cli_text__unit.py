@@ -36,7 +36,7 @@ class DataText:
         )
     ]
     """
-    Test cases for :func:`.anagrams`, testing that it functions correctly for expected inputs.
+    Test cases for :func:`algoscli.text.TextCLI.anagrams`, testing that it functions correctly for expected inputs.
     """
 
 

@@ -33,7 +33,7 @@ class DataText:
         )
     ]
     """
-    Test cases for :func:`.anagrams`, testing that it functions correctly for expected inputs.
+    Test cases for :func:`algoscli.text.TextCLI.anagrams`, testing that it functions correctly for expected inputs.
     """
 
 
@@ -48,7 +48,7 @@ class TestAnagrams:
     )
     def test_anagrams__expected(self, test_input, expected):
         """
-        Test that the :func:`.anagrams` function works properly for expected inputs. Test input can be found
+        Test that the :func:`algoscli.text.TextCLI.anagrams` function works properly for expected inputs. Test input can be found
         in :attr:`DataText.anagrams__expected` .
         """
         # stdin input
