@@ -7,6 +7,7 @@ Main module for REST server. Launch with
 
 """
 import json
+import subprocess
 from algosrest.server.text import TextREST
 from typing import Any
 
@@ -16,6 +17,17 @@ from fastapi.responses import StreamingResponse
 
 app = FastAPI()
 """The REST server instance itself"""
+
+
+@app.get("/shutdown")
+@app.get("/shutdown/")
+async def shutdown():
+    """
+    Shuts down the server. Useful for testing when running the server in a separate thread. Works by finding the
+    pid of this process and killing it.
+    """
+    # First grep uvicorn from the list of processes, print the second column and use that as input into kill.
+    subprocess.check_output("kill $(ps aux | grep \"[u]vicorn main:app\" | awk '{print $2;}')", shell=True)
 
 
 @app.post("/text/anagrams")
