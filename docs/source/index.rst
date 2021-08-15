@@ -11,6 +11,7 @@ Welcome to Algos's documentation!
    :caption: Contents:
 
    algos
+   cli
    tests
 
 Indices and tables
