@@ -30,9 +30,19 @@ class TextCLI:
            [['elbow', 'below', 'bowel']]
 
         """
+        # Generate an instance of ReadStdIn.
         reader: ReadStdIn = ReadStdIn()
-        words: str = reader.string()
+
+        # Read stdin and create set of words for anagrams.
+        words: list[str] = reader.string()
         words_set = set(" ".join(words).split())
 
+        # If the input is empty, just pass in the empty set.
+        if len(words_set) == 0:
+            words_set = {""}
+
+        # Call the function.
         result: list[list[str]] = anagrams(words_set)
+
+        # Print results to stdout.
         print(result)
