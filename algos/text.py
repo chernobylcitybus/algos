@@ -3,11 +3,11 @@ The following are implementations of algorithms that primarily operate on text.
 """
 
 
-def anagrams(S: set[str]) -> list[list[str]]:
+def anagrams(word_set: set[str]) -> list[list[str]]:
     """
     Finds all anagrams of words contained within an input set of words.
 
-    :param set[str] S: The set of words to find anagrams within.
+    :param set[str] word_set: The set of words to find anagrams within.
     :return: A list of lists of anagrams.
     """
     # Create a dictionary that associates a word's signature to an array
@@ -18,7 +18,7 @@ def anagrams(S: set[str]) -> list[list[str]]:
     word: str
 
     # For each word in the set of words.
-    for word in S:
+    for word in word_set:
         # Calculate its signature. This is just each character sorted in alphabetical order as a single string.
         s: str = "".join(sorted(word))
 

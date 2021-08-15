@@ -2,12 +2,12 @@
 The test module for :mod:`algos.io` .
 """
 import io
-import textwrap
 import pytest
 from algos.io import ReadStdIn, convert_anystr
 
 
 def test_convert_anystr():
+    """Tests cases for :func:`.convert_anystr`. Checks that both string and bytes input convert to string."""
     assert isinstance(convert_anystr("hello"), str)
     assert isinstance(convert_anystr(b"hello"), str)
 
