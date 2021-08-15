@@ -1,6 +1,16 @@
 """
 The following are implementations of algorithms that primarily operate on text.
 """
+import logging
+
+# Set up the logger for the module
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)s %(name)s [%(lineno)d] %(message)s "
+)
+
+# Get the logger
+logger: logging.Logger = logging.getLogger("algos.text")
 
 
 def anagrams(word_set: set[str]) -> list[list[str]]:
@@ -16,6 +26,21 @@ def anagrams(word_set: set[str]) -> list[list[str]]:
 
     # Declare the iterator.
     word: str
+
+    # Raise TypeError if a set is not supplied.
+    if not isinstance(word_set, set):
+        logger.critical("anagrams - Incorrect Input Type")
+        raise TypeError("Input Data Type Not Set")
+
+    # Check that all element of set are of string type.
+    if not all([isinstance(x, str) for x in word_set]):
+        logger.critical("anagrams - Incorrect Elements Types")
+        raise TypeError("Not All Elements of Type str.")
+
+    # Raise ValueError on empty set.
+    if len(word_set) == 0:
+        logger.critical("anagrams - Empty Input")
+        raise ValueError("Empty Set")
 
     # For each word in the set of words.
     for word in word_set:

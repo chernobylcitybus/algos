@@ -27,26 +27,49 @@ class DataText:
     Test cases for :func:`.anagrams`, testing that it functions correctly for expected inputs.
     """
 
-
-@pytest.mark.parametrize(
-    "test_input,expected",
-    DataText.anagrams__expected,
-    ids=[str(v) for v in range(len(DataText.anagrams__expected))]
-)
-def test_anagrams__expected(test_input, expected):
+    anagrams__unexpected = [
+        (set(), ValueError),
+        (["hello"], TypeError),
+        ({1, 2, 3}, TypeError)
+    ]
     """
-    Test that the :func:`.anagrams` function works properly for expected inputs. Test input can be found
-    in :attr:`DataText.anagrams__expected` .
+    Test cases for :func:`.anagrams`, testing that it raises an error for unexpected inputs.
     """
-    # Assign the input to the test_input.
-    word_set = test_input
 
-    # Find the anagrams.
-    anagrams_found = anagrams(word_set)
+class TestAnagrams:
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        DataText.anagrams__expected,
+        ids=[str(v) for v in range(len(DataText.anagrams__expected))]
+    )
+    def test_anagrams__expected(self, test_input, expected):
+        """
+        Test that the :func:`.anagrams` function works properly for expected inputs. Test input can be found
+        in :attr:`DataText.anagrams__expected` .
+        """
+        # Assign a meaningful name to the test set.
+        word_set = test_input
 
-    # Sort in order to compare generated anagrams against expected value.
-    anagrams_found = [sorted(x) for x in anagrams_found]
-    anagrams_found.sort()
+        # Find the anagrams.
+        anagrams_found = anagrams(word_set)
 
-    # Check that the output is as expected.
-    assert anagrams_found == expected
+        # Sort in order to compare generated anagrams against expected value.
+        anagrams_found = [sorted(x) for x in anagrams_found]
+        anagrams_found.sort()
+
+        # Check that the output is as expected.
+        assert anagrams_found == expected
+
+    @pytest.mark.parametrize(
+        "test_input,error",
+        DataText.anagrams__unexpected,
+        ids=[repr(v) for v in DataText.anagrams__unexpected]
+    )
+    def test_anagrams__unexpected(self, test_input, error):
+        """
+        Test that the :func:`.anagrams` raises exceptions for unexpected inputs. Test input can be found
+        in :attr:`DataText.anagrams__unexpected` .
+        """
+        # Check if error is raised.
+        with pytest.raises(error):
+            anagrams(test_input)
