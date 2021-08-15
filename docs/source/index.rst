@@ -12,6 +12,7 @@ Welcome to Algos's documentation!
 
    algos
    cli
+   rest
    tests
 
 Indices and tables
