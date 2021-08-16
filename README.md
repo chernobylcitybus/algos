@@ -54,7 +54,7 @@ However, if command line features have been added (console scripts in setup.py),
 the commands
 
     python3.9 -m pip uninstall algos
-    puthon3.9 -m pip install --editable .
+    python3.9 -m pip install --editable .
 
 This will create the new entry points that your shell can use.
 
