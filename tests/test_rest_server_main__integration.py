@@ -1,21 +1,10 @@
 """
 Tests the endpoints in main that aren't called from other modules.
 """
-import pytest
-import os
 import time
 import threading
 import subprocess
-
-
-def start_server():
-    """
-    Start the server process in a separate thread.
-    """
-    os.chdir("algosrest/server/")
-    subprocess.Popen(["uvicorn", "main:app", "--reload", "--host", "127.0.0.1", "--port", "8081"],
-                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    os.chdir("../..")
+from .conftest import start_server
 
 
 def test_shutdown():
@@ -33,7 +22,7 @@ def test_shutdown():
     pid: bytes = subprocess.check_output("echo $(ps aux | grep \"[u]vicorn.*main:app\" | awk '{print $2;}')", shell=True)
 
     # Call shutdown.
-    subprocess.check_output("curl http://localhost:8081/shutdown", shell=True)
+    subprocess.check_output("curl -s http://localhost:8081/shutdown", shell=True)
 
     # Sleep a bit
     time.sleep(1)

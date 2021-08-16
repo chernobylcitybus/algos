@@ -2,49 +2,15 @@
 Test the REST server's responses for the text algorithms in :mod:`algos.text` . This module depends on the use of
 the pytest fixture rest_server which does the set-up/teardown for an actual instance of the rest server.
 """
-import os
 import textwrap
-import threading
 import subprocess
-import time
 import json
 import pytest
 from algosrest.server.main import app
 
-from fastapi import Response
 from fastapi.testclient import TestClient
 
 client: TestClient = TestClient(app)
-
-
-def start_server():
-    """
-    Start the server process in a separate thread.
-    """
-    print(os.getcwd())
-    os.chdir("algosrest/server/")
-    subprocess.Popen(["uvicorn", "main:app", "--reload", "--host", "127.0.0.1", "--port", "8081"],
-                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    os.chdir("../..")
-
-
-@pytest.fixture(scope="class")
-def rest_server():
-    # Start the server in a thread.
-    server_thread = threading.Thread(target=start_server)
-    server_thread.start()
-
-    # Sleep a bit.
-    time.sleep(1)
-
-    # Yield something to keep it going.
-    yield 1
-
-    # Shutdown the server.
-    subprocess.check_output("curl -s http://localhost:8081/shutdown", shell=True)
-
-    # Wait a bit.
-    time.sleep(1)
 
 
 class DataText:
