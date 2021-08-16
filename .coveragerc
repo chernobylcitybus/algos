@@ -1,2 +1,2 @@
 [run]
-source = algos,algosrest,algoscli
+omit = /home/travis/virtualenv/*
