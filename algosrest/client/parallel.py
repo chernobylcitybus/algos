@@ -119,16 +119,33 @@ class RequestPool:
 
     .. automethod:: __init___
     """
-    def __init__(self, n_workers: int):
+    def __init__(self, n_workers: int, hostname: str, port: int):
         """
         Initializes the process pool with n_workers.
 
         :param n_workers: The number of processes to create.
         """
         self.pool: ProcessPool = ProcessPool(n_workers)
+        self.hostname: str = hostname
+        self.port: int = port
 
-    @staticmethod
-    def request(req_infos: list[RequestInfo], hostname: str, port: int) -> list[tuple[str, float, str]]:
+        # Check that the hostname is a string.
+        if not isinstance(self.hostname, str):
+            raise TypeError("Hostname not given as string")
+
+        # Check that the port is an integer.
+        if not isinstance(self.port, int):
+            raise TypeError("Port not given as int.")
+
+        # Check that the hostname is not empty.
+        if self.hostname == "":
+            raise ValueError("Blank hostname given")
+
+        # Check that we have a valid port.
+        if self.port < 1:
+            raise ValueError("Invalid port number given")
+
+    def request(self, req_infos: list[RequestInfo]) -> list[tuple[str, float, str]]:
         """
         The code to perform the HTTP request. Can be used directly, but used to map to :meth:`RequestPool.batch_request`
         and :meth:`RequestPool.single_request`.
@@ -146,32 +163,16 @@ class RequestPool:
         if not all([isinstance(x, RequestInfo) for x in req_infos]):
             raise TypeError("Unsupported Type for Input Elements")
 
-        # Check that the hostname is a string.
-        if not isinstance(hostname, str):
-            raise TypeError("Hostname not given as string")
-
-        # Check that the port is an integer.
-        if not isinstance(port, int):
-            raise TypeError("Port not given as int.")
-
-        # Check that the hostname is not empty.
-        if hostname == "":
-            raise ValueError("Blank hostname given")
-
-        # Check that we have a valid port.
-        if port < 1:
-            raise ValueError("Invalid port number given")
-
         # Create an empty list to store the results.
         results: list[tuple[str, float, str]] = list()
 
         # Create a connection to the host with which to perform the requests.
-        conn: http.client.HTTPConnection = http.client.HTTPConnection(hostname, port)
+        conn: http.client.HTTPConnection = http.client.HTTPConnection(self.hostname, self.port)
 
         # Force the keep-alive header to re-use the connection.
         headers: dict[str, str] = {
             "Connection": "keep-alive",
-            "Host": f"{hostname}:{port}",
+            "Host": f"{self.hostname}:{self.port}",
             "User-Agent": "algosrestclient/0.1.0",
             "Accept": "*/*"
         }
@@ -202,7 +203,7 @@ class RequestPool:
                 post_headers: dict[str, str] = {
                     "Content-Length": str(len(encoded_args)),
                     "Content-type": "application/json",
-                    "Host": f"{hostname}:{port}",
+                    "Host": f"{self.hostname}:{self.port}",
                     "User-Agent": "algosrestclient/0.1.0",
                     "Accept": "*/*",
                     "Connection": " keep-alive"
