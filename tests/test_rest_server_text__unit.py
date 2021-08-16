@@ -45,6 +45,10 @@ class DataText:
         ({"noinput": "elbow below bowel"}, (400, {"detail": "'input' not found"})),
         ({"input": 1}, (400, {"detail": "Unsupported Type"}))
     ]
+    """
+    Test cases for :meth:`algosrest.server.text.TextREST.anagrams` ., testing that it raises HTTPExceptions for
+    unexpected input.
+    """
 
 
 @pytest.mark.parametrize(
@@ -55,10 +59,6 @@ class DataText:
 def test_anagrams__expected(test_input, expected):
     """
     Test the ``/text/anagrams`` endpoint with expected inputs. Uses :meth:`algosrest.server.text.TextREST.anagrams` .
-
-    :param test_input:
-    :param expected:
-    :return:
     """
     # Make the request and get the response.
     response: Response = client.post("/text/anagrams", json={"input": " ".join(list(test_input))})
@@ -81,16 +81,16 @@ def test_anagrams__expected(test_input, expected):
 def test_anagrams__unexpected(test_input, expected):
     """
     Test the ``/text/anagrams`` endpoint with expected inputs. Uses :meth:`algosrest.server.text.TextREST.anagrams` .
-
-    :param test_input:
-    :param expected:
-    :return:
     """
+    # Use the test client to perform the request.
     response: Response = client.post("/text/anagrams", json=test_input)
-    anagrams_found = response.json()
-    print(response.status_code)
-    print(anagrams_found)
 
+    # Get the response.
+    error = response.json()
+
+    # Check that the status code is as expected.
     assert response.status_code == expected[0]
-    assert anagrams_found == expected[1]
+
+    # Check if the reason for the error is as expected.
+    assert error == expected[1]
 
