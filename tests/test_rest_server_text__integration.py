@@ -21,9 +21,11 @@ def start_server():
     """
     Start the server process in a separate thread.
     """
+    print(os.getcwd())
     os.chdir("algosrest/server/")
     subprocess.Popen(["uvicorn", "main:app", "--reload", "--host", "127.0.0.1", "--port", "8081"],
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    os.chdir("../..")
 
 
 @pytest.fixture(scope="class")
