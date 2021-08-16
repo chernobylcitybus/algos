@@ -33,8 +33,10 @@ install the package.
 
 You can then create the documentation as follows
 
-    cd docs/
-    make clean && make html
+    bash scripts/make_docs.sh
+
+Please use the script in order to be able to generate documentation for the tests folder. It adds an \_\_init\_\_.py
+so that sphinx picks up the folder.
 
 Installation
 ------------
