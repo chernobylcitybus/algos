@@ -10,7 +10,15 @@ REST Server
 Unit
 +++++
 
-.. automodule:: tests.test_rest_server_main
+.. automodule:: tests.test_rest_server_main__unit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Integration
++++++++++++
+
+.. automodule:: tests.test_rest_server_main__integration
    :members:
    :undoc-members:
    :show-inheritance:

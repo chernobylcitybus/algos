@@ -2,7 +2,6 @@
 Tests the endpoints in main that aren't called from other modules.
 """
 import pytest
-import threading
 import subprocess
 from algosrest.server.main import app
 
