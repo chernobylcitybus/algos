@@ -27,7 +27,7 @@ async def shutdown():
     pid of this process and killing it.
     """
     # First grep uvicorn from the list of processes, print the second column and use that as input into kill.
-    subprocess.check_output("kill $(ps aux | grep \"[u]vicorn main:app\" | awk '{print $2;}')", shell=True)
+    output = subprocess.check_output("kill $(ps aux | grep \"[u]vicorn.*main:app\" | awk '{print $2;}')", shell=True)
 
 
 @app.post("/text/anagrams")
