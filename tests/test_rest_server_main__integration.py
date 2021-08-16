@@ -15,6 +15,7 @@ def start_server():
     os.chdir("algosrest/server/")
     subprocess.Popen(["uvicorn", "main:app", "--reload", "--host", "127.0.0.1", "--port", "8081"],
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    os.chdir("../..")
 
 
 def test_shutdown():
