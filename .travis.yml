@@ -8,4 +8,4 @@ install:
 script:
   - pytest -sv --cov=algos --cov=algoscli --cov=algosrest tests/
 after_success:
-  - coveralls
+  - coveralls --rcfile=./.coveragerc
