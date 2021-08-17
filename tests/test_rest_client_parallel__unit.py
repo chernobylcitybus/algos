@@ -93,6 +93,20 @@ class DataRequestPool:
             [TypeError, "Invalid input type for array element"]
          )
     ]
+    """
+    Test data for :meth:`.RequestPool.chunks` and exceptions raised.
+    """
+
+    init__unexpected = [
+        ([[1], "localhost", 8081], [TypeError, "Number of workers not given as int"]),
+        ([1, 1, 8081], [TypeError, "Hostname not given as string"]),
+        ([1, "localhost", "8081"], [TypeError, "Port not given as int"]),
+        ([1, "", 8081], [ValueError, "Blank hostname given"]),
+        ([1, "localhost", 0], [ValueError, "Invalid port number given"]),
+    ]
+    """
+    Test data for :meth:`.RequestPool.__init__` and exceptions raised.
+    """
 
 
 class TestRequestInfo:
@@ -304,6 +318,31 @@ class TestProcessPool:
 
 
 class TestRequestPool:
+    """
+    Test class for :class:`.RequestPool` .
+    """
+    @pytest.mark.parametrize(
+        "test_input,error",
+        DataRequestPool.init__unexpected,
+        ids=[repr(v) for v in DataRequestPool.init__unexpected]
+    )
+    def test_init__unexpected(self, test_input, error):
+        """
+        Test that :meth:`RequestPool.chunks` raises exceptions on invalid input in
+        :attr:`DataRequestPool.init__unexpected` .
+        """
+        # Assign input to meaningful names.
+        n_workers = test_input[0]
+        hostname = test_input[1]
+        port = test_input[2]
+
+        # Try to raise the exceptions.
+        with pytest.raises(error[0]) as excinfo:
+            req = RequestPool(n_workers, hostname, port)
+
+        # Check that the error string is correct.
+        assert excinfo.match(error[1])
+        
     @pytest.mark.parametrize(
         "test_input,expected",
         DataRequestPool.chunks__expected,
@@ -350,5 +389,39 @@ class TestRequestPool:
         with pytest.raises(error[0]) as excinfo:
             res = list(req.chunks(test_data, chunks))
 
+        # Shutdown the RequestPool.
+        req.shutdown()
+
         # Check that the error string is correct.
         assert excinfo.match(error[1])
+
+    def test_shutdown(self):
+        """
+        Tests :meth:`.RequestPool.shutdown`. We make a request, call the shutdown and make another request. The
+        second request should raise an exception.
+        """
+        # Create an instance of the process pool.
+        request_pool = RequestPool(1, "localhost", 8085)
+
+        # Make a request to see if it is working.
+        res = request_pool.pool.single(square, 2)
+
+        # Check if we got the correct response.
+        assert res.result() == 4
+
+        # Shutdown the pool.
+        request_pool.shutdown()
+
+        # Make a request to see if it is still working.
+        with pytest.raises(RuntimeError) as excinfo:
+            res = request_pool.pool.single(square, 2)
+
+        # Check that the error string is correct.
+        assert excinfo.match("cannot schedule new futures after shutdown")
+
+    def test_batch_request__expected(self):
+        req = RequestPool(1, "localhost", 8081)
+        req_infos = [[RequestInfo(endpoint="/", method="GET")]]
+
+        res = list(req.batch_request(req_infos))
+        print(res)

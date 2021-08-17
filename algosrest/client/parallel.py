@@ -13,7 +13,7 @@ import time
 import json
 import http.client
 
-from typing import Optional, Any
+from typing import Optional, Any, Union
 from collections.abc import Iterator, Callable
 
 
@@ -115,7 +115,7 @@ class ProcessPool:
     def batch(
             self,
             func: Callable[[list[RequestInfo], str, int], list[tuple[str, float, str]]],
-            *iterables: list[list[RequestInfo]]
+            *iterables: Union[list[list[RequestInfo]], Any]
     ) -> Iterator[list[tuple[str, float, str]]]:
         """
         Performs a batch request. The idea here is that you have a list of lists of :class:`RequestInfo` 's, each
@@ -138,7 +138,7 @@ class ProcessPool:
     def single(
             self,
             func: Callable[[list[RequestInfo], str, int], list[tuple[str, float, str]]],
-            *arg: list[RequestInfo]
+            *arg: Union[list[RequestInfo], Any]
     ) -> futures.Future[list[tuple[str, float, str]]]:
         """
         Submit a single request to the executor pool.
@@ -170,27 +170,33 @@ class RequestPool:
         """
         Initializes the process pool with n_workers.
 
+        :raises TypeError: If hostname is not a string.
+        :raises TypeError: If port is not an int.
         :param n_workers: The number of processes to create.
         """
-        self.pool: ProcessPool = ProcessPool(n_workers)
-        self.hostname: str = hostname
-        self.port: int = port
+        # Check that n_workers is an integer.
+        if not isinstance(n_workers, int):
+            raise TypeError("Number of workers not given as int")
 
         # Check that the hostname is a string.
-        if not isinstance(self.hostname, str):
+        if not isinstance(hostname, str):
             raise TypeError("Hostname not given as string")
 
         # Check that the port is an integer.
-        if not isinstance(self.port, int):
-            raise TypeError("Port not given as int.")
+        if not isinstance(port, int):
+            raise TypeError("Port not given as int")
 
         # Check that the hostname is not empty.
-        if self.hostname == "":
+        if hostname == "":
             raise ValueError("Blank hostname given")
 
         # Check that we have a valid port.
-        if self.port < 1:
+        if port < 1:
             raise ValueError("Invalid port number given")
+        
+        self.pool: ProcessPool = ProcessPool(n_workers)
+        self.hostname: str = hostname
+        self.port: int = port
 
     @staticmethod
     def request(req_infos: list[RequestInfo], hostname: str, port: int) -> list[tuple[str, float, str]]:
@@ -289,7 +295,11 @@ class RequestPool:
                                                   process.
         :return: An iterator that yields the results of the requests.
         """
-        results: Iterator[list[tuple[str, float, str]]] = self.pool.batch(self.request, req_infos)
+        req_len = len(req_infos)
+        hostnames = [self.hostname] * req_len
+        ports = [self.port] * req_len
+
+        results: Iterator[list[tuple[str, float, str]]] = self.pool.batch(self.request, req_infos, hostnames, ports)
         return results
 
     def single_request(self, req_info: RequestInfo) -> futures.Future[list[tuple[str, float, str]]]:
