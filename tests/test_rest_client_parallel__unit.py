@@ -2,12 +2,23 @@
 Unit Tests for :mod:`algosrest.client.parallel` .
 """
 import concurrent.futures
-
+import json
 import pytest
 import http.client
 from unittest.mock import patch
 from algosrest.client.parallel import ProcessPool, RequestPool, RequestInfo
 from .conftest import MockHTTPConnection
+
+
+root_req = RequestInfo(endpoint="/", method="GET")
+"""
+:class:`RequestInfo` for request to root server endpoint.
+"""
+
+root_req_res = [{"status": "okay"}, "/"]
+"""
+Response from the rest server when performing a request to the root endpoint.
+"""
 
 
 def square(x):
@@ -111,6 +122,17 @@ class DataRequestPool:
     ]
     """
     Test data for :meth:`.RequestPool.__init__` and exceptions raised.
+    """
+
+    batch__expected = [
+        ([[root_req]], [[root_req_res]]),
+        ([[root_req, root_req]], [[root_req_res, root_req_res]]),
+        ([[root_req], [root_req]], [[root_req_res], [root_req_res]]),
+
+
+    ]
+    """
+    Test data for :meth:`.RequestInfo.batch_request` to verify that the correct responses are returned.
     """
 
 
@@ -424,12 +446,27 @@ class TestRequestPool:
         # Check that the error string is correct.
         assert excinfo.match("cannot schedule new futures after shutdown")
 
-    def test_batch_request__expected(self):
-        req = RequestPool(1, "localhost", 8081)
-        req_infos = [[RequestInfo(endpoint="/", method="GET")]]
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        DataRequestPool.batch__expected,
+        ids=[str(v) for v in range(len(DataRequestPool.batch__expected))]
+    )
+    def test_batch_request__expected(self, test_input, expected):
+        """
+        Tests :meth:`.RequestPool.batch_request` . The input data used is :attr:`DataRequestPool.batch__expected` ,
+        with corresponding expected output. We use :class:`MockHTTPConnection` to patch the HTTP requests and
+        responses. Only the HTTP endpoints are patched, so all the code in our library runs fully with the mock
+        responses.
+        """
+        req = RequestPool(2, "localhost", 8081)
+        req_infos = test_input
 
-        MockHTTPConnection.buffer = b'{"status": "okay"}'
-        with patch.object(http.client, "HTTPConnection", MockHTTPConnection) as mock_object:
-                res = list(req.batch_request(req_infos))
+        expected_buffer = json.dumps(root_req_res[0]).encode()
 
-        print(res)
+        MockHTTPConnection.buffer = expected_buffer
+        with patch.object(http.client, "HTTPConnection", MockHTTPConnection):
+            res = list(req.batch_request(req_infos))
+
+        res_cleaned = [[[json.loads(y[0]), y[2]] for y in x] for x in res]
+
+        assert res_cleaned == expected
