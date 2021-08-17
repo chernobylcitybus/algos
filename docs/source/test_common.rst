@@ -1,9 +1,6 @@
 Common Modules Tests
 ====================
 
-Python Package
---------------
-
 CLI
 ---
 

@@ -38,3 +38,11 @@ Unit
    :members:
    :undoc-members:
    :show-inheritance:
+
+Integration
++++++++++++
+
+.. automodule:: tests.test_rest_server_text__integration
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,3 +1,6 @@
+"""
+Unit Tests for :mod:`algosrest.client.parallel` .
+"""
 import pytest
 from algosrest.client.parallel import ProcessPool
 
@@ -39,7 +42,7 @@ class DataProcessPool:
 
 class TestProcessPool:
     """
-    Test class for :class:`ProcessPool` 's methods.
+    Test class for :class:`.ProcessPool` 's methods.
     """
     @pytest.mark.parametrize(
         "test_input,expected",

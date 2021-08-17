@@ -7,3 +7,4 @@ Tests Package
    test_common
    test_io
    test_text
+   test_parallel
