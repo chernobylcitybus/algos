@@ -18,8 +18,7 @@ multiprocessing enabled to support server-side parallel computation. The :any:`t
 integration tests, for all components. The test case data is also included, and appropriately cross referenced with
 the functions being tested.
 
-Installation
-------------
+**Installation**
 
 To install the package one simply issues
 
@@ -43,8 +42,7 @@ the commands
 
 This will create the new entry points that your shell can use.
 
-Documentation
--------------
+**Documentation**
 
 To build the documentation you will need to have a working LaTeX installation. On Debian, this can be
 achieved with
@@ -70,8 +68,7 @@ You can then create the documentation as follows
 Please use the script in order to be able to generate documentation for the tests folder. It adds an \_\_init\_\_.py
 so that sphinx picks up the folder.
 
-Testing
--------
+**Testing**
 
 There are over 100 tests so far. Both unit tests and integration tests are carried out simultaneously with
 no special setup needed.
@@ -94,8 +91,7 @@ To run the full coverage suite, we can use
 
    $ pytest -sv --cov=algos --cov=algoscli --cov=algosrest --cov-report=html tests/
 
-Static Analysis and Optimization
---------------------------------
+**Static Analysis and Optimization**
 
 ``mypy`` has been used throughout the project. In the vast majority of cases, all variables have been statically
 typed, whether interfaces, local variables or class variables.
@@ -178,8 +174,7 @@ Observe the following sequence of steps
 
 We can now see the compiled libraries present in the packages, alongside their source files.
 
-Package Usage
--------------
+**Package Usage**
 
 More can be found in :any:`algos. The API is separated into groups based on the type of algorithm. An example using the
 text module would be to find the anagrams in a given set of words. In python, we could do the following
@@ -202,8 +197,7 @@ text module would be to find the anagrams in a given set of words. In python, we
    print(anagrams_found)
    [['act', 'cat'], ['arc', 'car'], ['below', 'bowel', 'elbow'], ['cider', 'cried'], ['night', 'thing']]
 
-Command Line Usage
-------------------
+**Command Line Usage**
 
 More can be found in :any:`cli` . A small example to get started would be
 
@@ -219,8 +213,7 @@ to other utilities and chained indefinitely. A future improvement will be an eva
 representations of data types to be eval'd and used as inputs to the command line algorithms. This would alleviate the
 need to convert to and from a plain text representation for each link of the chain.
 
-REST API Server Usage
----------------------
+**REST API Server Usage**
 
 More can be found in :any:`rest_server` . We start the server with the standard ``uvicorn`` usage.
 
@@ -245,8 +238,7 @@ We can use curl to verify that the server is operational
 
    [["bowel","below","elbow"]]
 
-REST API Client Usage
----------------------
+**REST API Client Usage**
 
 More information can be found in :any:`rest_client`. One should start the rest server first. Then, one can perform
 single requests or batch requests with the multiprocessing backend.
@@ -269,7 +261,6 @@ A single request looks like
 
    # Await the result.
    res_data = res.result()
-
 
 .. toctree::
    :maxdepth: 3
