@@ -69,12 +69,13 @@ class ProcessPool:
     def batch(
             self,
             func: Callable[[list[RequestInfo], str, int], list[tuple[str, float, str]]],
-            iterables: list[list[RequestInfo]]
+            *iterables: list[list[RequestInfo]]
     ) -> Iterator[list[tuple[str, float, str]]]:
         """
         Performs a batch request. The idea here is that you have a list of lists of :class:`RequestInfo` 's, each
         to the same host. Each worker will take one of the equally distributed lists, and track the responses
-        for that particular list.
+        for that particular list. Multiple workers will also just consume the inputs, if there are more than one
+        input per worker.
 
         :meth:`RequestPool.chunks` assists with splitting a single list of :class:`RequestInfo` 's into a list of
         lists of :class:`RequestInfo` 's.
@@ -84,14 +85,14 @@ class ProcessPool:
         :return: A iterator which produces a list with as many elements as workers, with the results of their
                  individual batch of requests.
         """
-        results: Iterator[list[tuple[str, float, str]]] = self.executor.map(func, iterables)
+        results: Iterator[list[tuple[str, float, str]]] = self.executor.map(func, *iterables)
 
         return results
 
     def single(
             self,
             func: Callable[[list[RequestInfo], str, int], list[tuple[str, float, str]]],
-            arg: list[RequestInfo]
+            *arg: list[RequestInfo]
     ) -> futures.Future[list[tuple[str, float, str]]]:
         """
         Submit a single request to the executor pool.
@@ -100,7 +101,7 @@ class ProcessPool:
         :param list[RequestInfo] arg: This list of requests you would like to make.
         :return: A futures instance with the results, their timings and the requested endpoint.
         """
-        future: futures.Future[list[tuple[str, float, str]]] = self.executor.submit(func, arg)
+        future: futures.Future[list[tuple[str, float, str]]] = self.executor.submit(func, *arg)
 
         return future
 
@@ -117,7 +118,7 @@ class RequestPool:
 
     :ivar ProcessPool pool: The process pool that will be used to make the requests.
 
-    .. automethod:: __init___
+    .. automethod:: __init__
     """
     def __init__(self, n_workers: int, hostname: str, port: int):
         """
@@ -145,7 +146,8 @@ class RequestPool:
         if self.port < 1:
             raise ValueError("Invalid port number given")
 
-    def request(self, req_infos: list[RequestInfo]) -> list[tuple[str, float, str]]:
+    @staticmethod
+    def request(req_infos: list[RequestInfo], hostname: str, port: int) -> list[tuple[str, float, str]]:
         """
         The code to perform the HTTP request. Can be used directly, but used to map to :meth:`RequestPool.batch_request`
         and :meth:`RequestPool.single_request`.
@@ -167,12 +169,12 @@ class RequestPool:
         results: list[tuple[str, float, str]] = list()
 
         # Create a connection to the host with which to perform the requests.
-        conn: http.client.HTTPConnection = http.client.HTTPConnection(self.hostname, self.port)
+        conn: http.client.HTTPConnection = http.client.HTTPConnection(hostname, port)
 
         # Force the keep-alive header to re-use the connection.
         headers: dict[str, str] = {
             "Connection": "keep-alive",
-            "Host": f"{self.hostname}:{self.port}",
+            "Host": f"{hostname}:{port}",
             "User-Agent": "algosrestclient/0.1.0",
             "Accept": "*/*"
         }
@@ -203,7 +205,7 @@ class RequestPool:
                 post_headers: dict[str, str] = {
                     "Content-Length": str(len(encoded_args)),
                     "Content-type": "application/json",
-                    "Host": f"{self.hostname}:{self.port}",
+                    "Host": f"{hostname}:{port}",
                     "User-Agent": "algosrestclient/0.1.0",
                     "Accept": "*/*",
                     "Connection": " keep-alive"
