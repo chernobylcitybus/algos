@@ -6,8 +6,7 @@
 Welcome to Algos's documentation!
 =================================
 
-Introduction
-------------
+**Introduction**
 
 This package aims to support general algorithm usage through three APIs. The first api :any:`algos` is a pure
 Python interface and is where the actual algorithmic work is done. The next api :any:`cli` represents a
@@ -177,7 +176,7 @@ We can now see the compiled libraries present in the packages, alongside their s
 
 **Package Usage**
 
-More can be found in :any:`algos. The API is separated into groups based on the type of algorithm. An example using the
+More can be found in :any:`algos`. The API is separated into groups based on the type of algorithm. An example using the
 text module would be to find the anagrams in a given set of words. In python, we could do the following
 
 .. code-block:: bash
@@ -265,7 +264,6 @@ A single request looks like
 
 .. toctree::
    :maxdepth: 3
-   :caption: Contents:
 
    algos
    cli
