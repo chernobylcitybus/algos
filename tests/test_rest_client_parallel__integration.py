@@ -40,11 +40,50 @@ class TestRequestPool:
         ids=[str(v) for v in range(len(DataRequestPool.batch__expected))]
     )
     def test_batch_request__expected(self, rest_server, test_input, expected):
+        """
+        Tests :meth:`.RequestPool.batch_request` . The input data used is :attr:`DataRequestPool.batch__expected` ,
+        with corresponding expected output. The latest version of the :func:`.rest_server` is used to receive
+        the requests and send back the responses.
+        """
+        # Create a RequestPool with two workers.
         req = RequestPool(2, "localhost", 8081)
+
+        # Set the RequestInfo array to the test input.
         req_infos = test_input
 
+        # Make the request.
         res = list(req.batch_request(req_infos))
+
+        # Exclude timings from results.
         res_cleaned = [[[json.loads(y[0]), y[2]] for y in x] for x in res]
 
+        # Clean up the process pool.
+        req.shutdown()
+
+        # Verify that the results are as expected.
         assert res_cleaned == expected
+
+    def test_single_request__expected(self, rest_server):
+        """
+        Tests :meth:`.RequestPool.single_request` . The latest version of the :func:`.rest_server` is used to receive
+        the requests and send back the responses.
+        """
+        # Create a RequestPool with two workers.
+        req = RequestPool(1, "localhost", 8081)
+
+        # Perform a request to the root endpoint.
+        res = req.single_request(root_req)
+
+        # Clean up the process pool.
+        req.shutdown()
+
+        # Await the result.
+        res_data = res.result()
+
+        # Map the response to meaningful names.
+        status = json.loads(res_data[0][0])
+        endpoint = res_data[0][2]
+
+        # Check that they were as expected.
+        assert [status, endpoint] == root_req_res
 

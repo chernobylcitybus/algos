@@ -309,7 +309,12 @@ class RequestPool:
         :param req_info: A single request.
         :return: The result of the request with its timings and endpoint.
         """
-        results: futures.Future[list[tuple[str, float, str]]] = self.pool.single(self.request, [req_info])
+        results: futures.Future[list[tuple[str, float, str]]] = self.pool.single(
+            self.request,
+            [req_info],
+            self.hostname,
+            self.port
+        )
 
         return results
 

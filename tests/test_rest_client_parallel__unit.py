@@ -458,15 +458,52 @@ class TestRequestPool:
         responses. Only the HTTP endpoints are patched, so all the code in our library runs fully with the mock
         responses.
         """
+        # Create a RequestPool with two workers.
         req = RequestPool(2, "localhost", 8081)
+
+        # Set the RequestInfo list to the test_input.
         req_infos = test_input
 
+        # Encode the expected output of the root request response.
         expected_buffer = json.dumps(root_req_res[0]).encode()
 
+        # Set the output of the MockHTTPConnection to be the expected response.
         MockHTTPConnection.buffer = expected_buffer
+
+        # Perform the request with HTTPConnection patched.
         with patch.object(http.client, "HTTPConnection", MockHTTPConnection):
             res = list(req.batch_request(req_infos))
 
+        # Remove timings from results.
         res_cleaned = [[[json.loads(y[0]), y[2]] for y in x] for x in res]
 
+        # Clean up the process pool.
+        req.shutdown()
+
+        # Check that the expected arrays were obtained.
         assert res_cleaned == expected
+
+    def test_single_request__expected(self):
+        # Create a RequestPool with two workers.
+        req = RequestPool(1, "localhost", 8081)
+
+        # Set the output of the MockHTTPConnection to be the expected response.
+        MockHTTPConnection.buffer = json.dumps(root_req_res[0]).encode()
+
+        # Perform the request with HTTPConnection patched.
+        with patch.object(http.client, "HTTPConnection", MockHTTPConnection):
+            # Perform a request to the root endpoint.
+            res = req.single_request(root_req)
+
+        # Clean up the process pool.
+        req.shutdown()
+
+        # Await the result.
+        res_data = res.result()
+
+        # Map the response to meaningful names.
+        status = json.loads(res_data[0][0])
+        endpoint = res_data[0][2]
+
+        # Check that they were as expected.
+        assert [status, endpoint] == root_req_res
