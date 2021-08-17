@@ -7,7 +7,7 @@ import subprocess
 from algosrest.server.main import app
 
 from fastapi.testclient import TestClient
-
+from fastapi import Response
 
 client: TestClient = TestClient(app)
 
@@ -31,3 +31,13 @@ def test_root():
 
     assert resp.status_code == 200
     assert resp.json() == {"status": "okay"}
+
+
+def test_post_root():
+    """
+    Check if posting to the root endpoint yields the data sent with the POST request.
+    """
+    response: Response = client.post("/", json={"hello": "world"})
+
+    assert response.status_code == 200
+    assert response.json() == {"hello": "world"}

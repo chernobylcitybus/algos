@@ -2,6 +2,7 @@
 Tests the endpoints in main that aren't called from other modules.
 """
 import json
+import textwrap
 import time
 import threading
 import subprocess
@@ -53,3 +54,19 @@ class TestMain:
 
         # Check that the result is as expected.
         assert json.loads(output.decode()) == {"status": "okay"}
+
+    def test_post_root(self, rest_server):
+        """
+        Check if the root endpoint returns the data sent with the POST request.
+        """
+        # Make a request to the root endpoint with curl.
+        post_request = textwrap.dedent(
+            f"""
+            curl -s --header "Content-Type: application/json"   --request POST   
+            --data '{json.dumps({"hello": "world"})}'   http://localhost:8081/
+            """
+        ).replace("\n", " ")
+        post_output: bytes = subprocess.check_output(post_request, shell=True)
+
+        # Check that the result is as expected.
+        assert json.loads(post_output.decode()) == {"hello": "world"}
