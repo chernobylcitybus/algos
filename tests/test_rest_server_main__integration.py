@@ -1,6 +1,7 @@
 """
 Tests the endpoints in main that aren't called from other modules.
 """
+import json
 import time
 import threading
 import subprocess
@@ -40,3 +41,15 @@ def test_shutdown():
     # Assert that the pid was a number and terminated was an empty string.
     assert isinstance(int(pid_str), int)
     assert terminated_str == ""
+
+
+class TestMain:
+    def test_root(self, rest_server):
+        """
+        Check if the root endpoint returns a status message.
+        """
+        # Make a request to the root endpoint with curl.
+        output = subprocess.check_output("curl -s http://localhost:8081/", shell=True)
+
+        # Check that the result is as expected.
+        assert json.loads(output.decode()) == {"status": "okay"}

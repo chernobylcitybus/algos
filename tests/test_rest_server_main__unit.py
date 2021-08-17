@@ -1,6 +1,7 @@
 """
 Tests the endpoints in main that aren't called from other modules.
 """
+import json
 import pytest
 import subprocess
 from algosrest.server.main import app
@@ -20,3 +21,13 @@ def test_shutdown():
     """
     with pytest.raises(subprocess.CalledProcessError):
         client.get("/shutdown")
+
+
+def test_root():
+    """
+    Check if the root endpoint returns a status message.
+    """
+    resp = client.get("/")
+
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "okay"}

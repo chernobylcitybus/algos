@@ -19,6 +19,16 @@ app = FastAPI()
 """The REST server instance itself"""
 
 
+@app.get("/")
+def read_root():
+    """
+    A function to read the root directory. This just sends a dictionary back with the message that everything is
+    okay.
+    """
+
+    return {"status": "okay"}
+
+
 @app.get("/shutdown")
 @app.get("/shutdown/")
 async def shutdown():
