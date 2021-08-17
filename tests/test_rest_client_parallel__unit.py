@@ -72,13 +72,27 @@ class DataRequestPool:
     """
     chunks__expected = [
         (
-            [RequestInfo(endpoint=x, method="GET") for x in ["a", "b", "c"]],
+            [1, [RequestInfo(endpoint=x, method="GET") for x in ["a", "b", "c"]]],
             [[RequestInfo(endpoint=x, method="GET")] for x in ["a", "b", "c"]]
+        ),
+        (
+            [2, [RequestInfo(endpoint=x, method="GET") for x in ["a", "b", "c"]]],
+            [[RequestInfo(endpoint=x, method="GET") for x in ["a", "b"]]] +
+            [[RequestInfo(endpoint=x, method="GET") for x in ["c"]]]
         )
     ]
     """
     Test data for :meth:`.RequestPool.chunks`.
     """
+
+    chunks__unexpected = [
+        ([list(), None], [TypeError, "Invalid input type for n - <class 'list'>"]),
+        ([2, dict()], [TypeError, "Invalid input type for array - <class 'dict'>"]),
+        (
+            [2, [1, RequestInfo(endpoint="a", method="GET")]],
+            [TypeError, "Invalid input type for array element"]
+         )
+    ]
 
 
 class TestRequestInfo:
@@ -293,17 +307,48 @@ class TestRequestPool:
     @pytest.mark.parametrize(
         "test_input,expected",
         DataRequestPool.chunks__expected,
-        ids=[
-            repr(v) for v in DataRequestPool.chunks__expected
-        ]
+        ids=[v for v in range(len(DataRequestPool.chunks__expected))]
     )
     def test_chunks__expected(self, test_input, expected):
         """
         Test :meth:`RequestPool.chunks` using expected inputs :attr:`DataRequestPool.chunks__expected` .
         """
-
+        # Assign input to meaningful names.
+        chunks = test_input[0]
+        test_data = test_input[1]
+        
+        # Create the RequestPool.
         req = RequestPool(1, "localhost", 8081)
-        res = list(req.chunks(test_input, 1))
+        
+        # Split the input into chunks.
+        res = list(req.chunks(test_data, chunks))
+        
+        # Shutdown the RequestPool.
         req.shutdown()
 
+        # Check that the results are as expected.
         assert res == expected
+
+    @pytest.mark.parametrize(
+        "test_input,error",
+        DataRequestPool.chunks__unexpected,
+        ids=[repr(v) for v in DataRequestPool.chunks__unexpected]
+    )
+    def test_chunks__unexpected(self, test_input, error):
+        """
+        Test that :meth:`RequestPool.chunks` raises exceptions on invalid input in
+        :attr:`DataRequestPool.chunks__unexpected` .
+        """
+        # Assign input to meaningful names.
+        chunks = test_input[0]
+        test_data = test_input[1]
+
+        # Create the RequestPool.
+        req = RequestPool(1, "localhost", 8081)
+
+        # Try to raise the exceptions.
+        with pytest.raises(error[0]) as excinfo:
+            res = list(req.chunks(test_data, chunks))
+
+        # Check that the error string is correct.
+        assert excinfo.match(error[1])

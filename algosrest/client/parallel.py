@@ -315,7 +315,22 @@ class RequestPool:
         :return: A list of lists of :class:`RequestInfo` s to be used with multiprocessing connections to Interactive
                  Brokers.
         """
+        # Check that n is of the correct type.
+        if not isinstance(n, int):
+            raise TypeError("Invalid input type for n - " + str(type(n)))
+
+        # Check that the array is of the correct type.
+        if not isinstance(array, list):
+            raise TypeError("Invalid input type for array - " + str(type(array)))
+
+        # Check that the array elements are of the correct type.
+        if not all([isinstance(x, RequestInfo) for x in array]):
+            raise TypeError("Invalid input type for array element")
+
+        # Declare the iterators.
         i: int
+
+        # Yield the array slices, one by one.
         for i in range(0, len(array), n):
             yield array[i:i+n]
 
