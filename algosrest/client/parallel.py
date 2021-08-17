@@ -27,16 +27,52 @@ class RequestInfo:
 
     .. automethod:: __init__
     .. automethod:: __repr__
+    .. automethod:: __eq__
     """
     def __init__(self, endpoint: str, method: str, data: Optional[dict[str, Any]] = None) -> None:
         """
+        Initializes the RequestInfo object. The inputs go the a variety of type and value checks.
 
+        :raises TypeError: If endpoint is not a string.
+        :raises TypeError: If method is not a string.
+        :raises ValueError: If method is not one of GET or POST.
+        :raises TypeError: If data is not a dictionary.
+        :raises ValueError: If no data was given for POST request.
+        :raises ValueError: If data was given for GET request.
         :param str endpoint: The endpoint you want to make a request to e.g. /text/anagrams
         :param str method: The method you want to use (POST if you are sending data, GET if you are not)
         :param Optional[dict[str, Any]] data: Optional data to send with POST requests.
         """
+        # Check that the endpoint was given as a string.
+        if not isinstance(endpoint, str):
+            raise TypeError("Invalid type for endpoint - " + str(type(endpoint)))
+
+        # Check that the method was given as a string.
+        if not isinstance(method, str):
+            raise TypeError("Invalid type for method - " + str(type(method)))
+
+        # Change method to uppercase
+        method_upper = method.upper()
+
+        # Check that method is one of "GET" or "POST".
+        if method_upper not in {"GET", "POST"}:
+            raise ValueError("Invalid value for method. Must be 'GET' or 'POST'")
+
+        # Check that the data, if given, is in the form of a dictionary.
+        if data is not None:
+            if not isinstance(data, dict):
+                raise TypeError("Invalid type for data - " + str(type(method)))
+
+        # Check that we have data for our "POST" request.
+        if data is None and method_upper == "POST":
+            raise ValueError("No data given for POST request")
+
+        # Check that data is not supplied for "GET"
+        if data is not None and method_upper == "GET":
+            raise ValueError("Data supplied for GET request")
+
         self.endpoint: str = endpoint
-        self.method: str = method.upper()
+        self.method: str = method_upper
         self.data: Optional[dict[str, Any]] = data
 
     def __repr__(self) -> str:
@@ -45,6 +81,16 @@ class RequestInfo:
         :return: String representation.
         """
         return f"RequestInfo({self.endpoint}, {self.method}, {self.data})"
+
+    def __eq__(self, other) -> bool:
+        """
+        Allow tests for equality. This function checks that the endpoints, methods and data of the two objects
+        being compared are all equal.
+        """
+        if not isinstance(other, RequestInfo):
+            return False
+
+        return (self.endpoint == other.endpoint) and (self.method == other.method) and (self.data == other.data)
 
 
 class ProcessPool:

@@ -2,7 +2,7 @@
 Unit Tests for :mod:`algosrest.client.parallel` .
 """
 import pytest
-from algosrest.client.parallel import ProcessPool
+from algosrest.client.parallel import ProcessPool, RequestPool, RequestInfo
 
 
 def square(x):
@@ -26,9 +26,35 @@ def point(x, y):
     return x, y
 
 
+class DataRequestInfo:
+    init__expected = [
+        (["a", "GET", None], RequestInfo(endpoint="a", method="GET")),
+        (["b", "POST", {"data": "something"}], RequestInfo(endpoint="b", method="POST", data={"data": "something"}))
+    ]
+    """
+    Test data for :meth:`.RequestInfo.__init__` that contains expected inputs for this function. Also used by
+    the test :meth:`TestRequestInfo.test_eq__expected`
+    """
+
+    init__unexpected = [
+        ([list(), "GET", None], [TypeError, "Invalid type for endpoint - <class 'list'>"]),
+        ([set(), "GET", None], [TypeError, "Invalid type for endpoint - <class 'set'>"]),
+        (["/", list(), None], [TypeError, "Invalid type for method - <class 'list'>"]),
+        (["/", set(), None], [TypeError, "Invalid type for method - <class 'set'>"]),
+        (["/", "HELP", None], [ValueError, "Invalid value for method. Must be 'GET' or 'POST'"]),
+        (["/", "POST", "string"], [TypeError, "Invalid type for data - <class 'str'>"]),
+        (["/", "POST", None], [ValueError, "No data given for POST request"]),
+        (["/", "GET", {}], [ValueError, "Data supplied for GET request"])
+    ]
+    """
+    Test data for :meth:`.RequestInfo.__init__` that contains bad input values, and the expected exceptions they
+    should raise.
+    """
+
+
 class DataProcessPool:
     """
-    Data for :class:`.ProcessPool`
+    Data for :class:`.ProcessPool` .
     """
     single_batch__expected = [
         ([square, [1, 2, 3]], [1, 4, 9]),
@@ -38,6 +64,131 @@ class DataProcessPool:
     """
     Test data for :meth:`.ProcessPool.batch` and :meth:`.ProcessPool.single` .
     """
+
+
+class DataRequestPool:
+    """
+    Data for :class:`.RequestPool` .
+    """
+    chunks__expected = [
+        (
+            [RequestInfo(endpoint=x, method="GET") for x in ["a", "b", "c"]],
+            [[RequestInfo(endpoint=x, method="GET")] for x in ["a", "b", "c"]]
+        )
+    ]
+    """
+    Test data for :meth:`.RequestPool.chunks`.
+    """
+
+
+class TestRequestInfo:
+    """
+    Test class for :class:`.RequestInfo` 's construction and dunder methods.
+    """
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        DataRequestInfo.init__expected,
+        ids=[
+            repr(v) for v in DataRequestInfo.init__expected
+        ]
+    )
+    def test_eq__expected(self, test_input, expected):
+        """
+        Tests that :meth:`.RequestInfo.__eq__` returns the expected value when constructed from the expected inputs.
+        Uses data :attr:`DataRequestInfo.init__expected` .
+        """
+        # Assign the test input to meaningful names.
+        endpoint = test_input[0]
+        method = test_input[1]
+        data = test_input[2]
+
+        # Instantiate the RequestInfo object with the inputs.
+        req = RequestInfo(endpoint=endpoint, method=method, data=data)
+
+        assert req.endpoint == expected.endpoint
+        assert req.method == expected.method
+        assert req.data == req.data
+
+    def test_eq__unexpected(self):
+        """
+        Tests that :meth:`.RequestInfo.__eq__` tests False if being compared to another object and is False if
+        the attributes of two :class:`RequestInfo` instances are not the same.
+        """
+        # Check that we return fast when the other object is not a RequestInfo.
+        req1 = RequestInfo(endpoint="/", method="GET")
+        assert not (req1 == list())
+
+        # Check that they differ when endpoints differ.
+        req2 = RequestInfo(endpoint="/hello", method="GET")
+        assert not (req2 == req1)
+
+        # Check that they differ when methods differ.
+        req3 = RequestInfo(endpoint="/hello", method="POST", data={})
+        assert not (req3 == req2)
+
+        # Check that they differ if data differs.
+        req4 = RequestInfo(endpoint="/hello", method="POST", data={"a": "string"})
+        assert not (req4 == req3)
+
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        DataRequestInfo.init__expected,
+        ids=[
+            repr(v) for v in DataRequestInfo.init__expected
+        ]
+    )
+    def test_init__expected(self, test_input, expected):
+        """
+        Test that :meth:`.RequestInfo.__init__` initializes the class correctly for expected inputs. We create the
+        object from the test inputs and check using :meth:`.RequestInfo.__eq__` that the instantiated class is the
+        same as the expected value. Uses data :attr:`DataRequestInfo.init__expected` .
+        """
+        # Assign the test input to meaningful names.
+        endpoint = test_input[0]
+        method = test_input[1]
+        data = test_input[2]
+
+        # Instantiate the RequestInfo object with the inputs.
+        req = RequestInfo(endpoint=endpoint, method=method, data=data)
+
+        # Check for equality.
+        assert req == expected
+
+    @pytest.mark.parametrize(
+        "test_input,error",
+        DataRequestInfo.init__unexpected,
+        ids=[
+            repr(v) for v in DataRequestInfo.init__unexpected
+        ]
+    )
+    def test_init__unexpected(self, test_input, error):
+        """
+        Test that :meth:`.RequestInfo.__init__` raises on invalid input values. We attempt to create an instance
+        and see if the raised error matches what we expected.
+        """
+        # Assign the test input to meaningful names.
+        endpoint = test_input[0]
+        method = test_input[1]
+        data = test_input[2]
+
+        # Try to raise the exception
+
+        with pytest.raises(error[0]) as excinfo:
+            # Instantiate the RequestInfo object with the inputs.
+            req = RequestInfo(endpoint=endpoint, method=method, data=data)
+
+        # Check if the error string is correct.
+        assert excinfo.match(error[1])
+
+    def test_repr(self):
+        """
+        Test that the text representation of :class:`.RequestInfo` is correct.
+        """
+        req = RequestInfo(endpoint="/", method="GET")
+        assert repr(req) == "RequestInfo(/, GET, None)"
+
+        req = RequestInfo(endpoint="/", method="POST", data={"a": "b"})
+        assert repr(req) == "RequestInfo(/, POST, {'a': 'b'})"
 
 
 class TestProcessPool:
@@ -133,4 +284,26 @@ class TestProcessPool:
         # Make a request to see if it is still working.
         with pytest.raises(RuntimeError) as excinfo:
             res = process_pool.single(square, 2)
-            assert excinfo.value == "cannot schedule new futures after shutdown"
+
+        # Check that the error string is correct.
+        assert excinfo.match("cannot schedule new futures after shutdown")
+
+
+class TestRequestPool:
+    @pytest.mark.parametrize(
+        "test_input,expected",
+        DataRequestPool.chunks__expected,
+        ids=[
+            repr(v) for v in DataRequestPool.chunks__expected
+        ]
+    )
+    def test_chunks__expected(self, test_input, expected):
+        """
+        Test :meth:`RequestPool.chunks` using expected inputs :attr:`DataRequestPool.chunks__expected` .
+        """
+
+        req = RequestPool(1, "localhost", 8081)
+        res = list(req.chunks(test_input, 1))
+        req.shutdown()
+
+        assert res == expected
