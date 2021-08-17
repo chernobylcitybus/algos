@@ -26,7 +26,7 @@ class DataRequestPool:
 
     ]
     """
-    Test data for :meth:`.RequestInfo.batch_request` to verify that the correct responses are returned.
+    Test data for :meth:`.RequestPool.batch_request` to verify that the correct responses are returned.
     """
 
 

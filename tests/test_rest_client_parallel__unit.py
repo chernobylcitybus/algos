@@ -12,7 +12,7 @@ from .conftest import MockHTTPConnection
 
 root_req = RequestInfo(endpoint="/", method="GET")
 """
-:class:`RequestInfo` for request to root server endpoint.
+:class:`RequestInfo` for GET request to root server endpoint.
 """
 
 root_req_res = [{"status": "okay"}, "/"]
@@ -128,11 +128,22 @@ class DataRequestPool:
         ([[root_req]], [[root_req_res]]),
         ([[root_req, root_req]], [[root_req_res, root_req_res]]),
         ([[root_req], [root_req]], [[root_req_res], [root_req_res]]),
-
+        ([[RequestInfo(endpoint="/", method="POST", data={"hello": "world"})]],
+         [[[{"hello": "world"}, "/"]]])
 
     ]
     """
-    Test data for :meth:`.RequestInfo.batch_request` to verify that the correct responses are returned.
+    Test data for :meth:`.RequestPool.batch_request` to verify that the correct responses are returned.
+    """
+
+    request__unexpected = [
+        (dict(), [TypeError, "Unsupported Type for Input List"]),
+        ([[root_req, 1]], [TypeError, "Unsupported Type for Input Elements"]),
+
+    ]
+    """
+    Test data for :meth:`.RequestPool.batch_request` to verify that :meth:`.RequestPool.request` raises exceptions
+    for invalid inputs.
     """
 
 
@@ -465,7 +476,7 @@ class TestRequestPool:
         req_infos = test_input
 
         # Encode the expected output of the root request response.
-        expected_buffer = json.dumps(root_req_res[0]).encode()
+        expected_buffer = json.dumps([expected[0][0][0]][0]).encode()
 
         # Set the output of the MockHTTPConnection to be the expected response.
         MockHTTPConnection.buffer = expected_buffer
@@ -482,6 +493,32 @@ class TestRequestPool:
 
         # Check that the expected arrays were obtained.
         assert res_cleaned == expected
+
+    @pytest.mark.parametrize(
+        "test_input,error",
+        DataRequestPool.request__unexpected,
+        ids=[str(v) for v in range(len(DataRequestPool.request__unexpected))]
+    )
+    def test_request__unexpected(self, test_input, error):
+        """
+        Tests :meth:`.RequestPool.batch_request` . The input data used is :attr:`DataRequestPool.request__unexpected` ,
+        with corresponding expected output.
+        """
+        # Create a RequestPool with two workers.
+        req = RequestPool(2, "localhost", 8081)
+
+        # Set the RequestInfo list to the test_input.
+        req_infos = test_input
+
+        # Make the request directly without the ProcessPool
+        with pytest.raises(error[0]) as excinfo:
+            req.request(req_infos, "localhost", 8081)
+
+        # Clean up the process pool.
+        req.shutdown()
+
+        # Check that the error strings match.
+        assert excinfo.match(error[1])
 
     def test_single_request__expected(self):
         # Create a RequestPool with two workers.

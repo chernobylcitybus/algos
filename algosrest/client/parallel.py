@@ -295,6 +295,7 @@ class RequestPool:
                                                   process.
         :return: An iterator that yields the results of the requests.
         """
+        # Create hostname and ports arguments to be sent along with request information.
         req_len = len(req_infos)
         hostnames = [self.hostname] * req_len
         ports = [self.port] * req_len
