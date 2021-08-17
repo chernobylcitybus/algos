@@ -29,6 +29,15 @@ def read_root():
     return {"status": "okay"}
 
 
+@app.post("/")
+async def post_root(json_data: Request):
+    """
+    A function that just sends back the arguments received. Used in testing.
+    """
+    body: dict[str, Any] = json.loads(bytes(await json_data.body()).decode('utf8'))
+    return body
+
+
 @app.get("/shutdown")
 @app.get("/shutdown/")
 async def shutdown():
