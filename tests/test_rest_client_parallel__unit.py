@@ -4,9 +4,10 @@ Unit Tests for :mod:`algosrest.client.parallel` .
 import concurrent.futures
 
 import pytest
+import http.client
 from unittest.mock import patch
 from algosrest.client.parallel import ProcessPool, RequestPool, RequestInfo
-from .conftest import yield_args
+from .conftest import MockHTTPConnection
 
 
 def square(x):
@@ -427,18 +428,8 @@ class TestRequestPool:
         req = RequestPool(1, "localhost", 8081)
         req_infos = [[RequestInfo(endpoint="/", method="GET")]]
 
-        with patch.object(concurrent.futures.ProcessPoolExecutor, "map", yield_args):
-            res = list(req.batch_request(req_infos))
+        MockHTTPConnection.buffer = b'{"status": "okay"}'
+        with patch.object(http.client, "HTTPConnection", MockHTTPConnection) as mock_object:
+                res = list(req.batch_request(req_infos))
 
-        # Read the patched arguments.
-        proc_pool = res[0]
-        func = res[1]
-        req_info = res[2]
-        hostname = res[3][0]
-        port = res[4][0]
-
-        assert isinstance(proc_pool, concurrent.futures.ProcessPoolExecutor)
-        assert func == req.request
-        assert req_info == req_infos
-        assert hostname == "localhost"
-        assert port == 8081
+        print(res)

@@ -274,7 +274,7 @@ class RequestPool:
             # Read the response from the connection as a string.
             response: http.client.HTTPResponse = conn.getresponse()
             response_data: str = response.read().decode("utf-8")
-
+            print("response data", response_data)
             # End our timer.
             end: float = time.time()
 

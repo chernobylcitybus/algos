@@ -12,7 +12,7 @@ class TestRequestPool:
         req_infos = [[RequestInfo(endpoint="/", method="GET")]]
 
         res = list(req.batch_request(req_infos))
-
+        print(res)
         assert json.loads(res[0][0][0]) == {"status": "okay"}
         assert res[0][0][2] == "/"
 
