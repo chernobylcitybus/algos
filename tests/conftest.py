@@ -40,3 +40,7 @@ def rest_server():
 
     # Wait a bit.
     time.sleep(1)
+
+
+def yield_args(*args):
+    return list(args)
