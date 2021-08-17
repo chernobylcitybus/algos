@@ -84,10 +84,8 @@ typed, whether interfaces, local variables or class variables.
 
 To perform static analysis for the entire project, one can issue
 
-.. code-block:: bash
-
-   $ mypy algos algoscli algosrest
-   Success: no issues found in 13 source files
+    $ mypy algos algoscli algosrest
+    Success: no issues found in 13 source files
 
 To perform static analysis for a signle file, we can use
 
