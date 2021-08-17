@@ -6,11 +6,40 @@ tests.
 
 Contains a variety of fixtures that will have scope for all tests.
 """
+import io
+import http.client
 import pytest
 import threading
 import time
 import os
 import subprocess
+
+
+class MockHTTPResponse:
+    def __init__(self, buffer: bytes):
+        self.buffer = buffer
+
+    def read(self):
+        return self.buffer
+
+
+class MockHTTPConnection:
+
+    buffer = b"Hello"
+
+    def __init__(self, hostname, port):
+        self.hostname = hostname
+        self.port = port
+
+    def request(self, *args, **kwargs):
+        pass
+
+    def getresponse(self):
+        mock_res = MockHTTPResponse(self.buffer)
+        return mock_res
+
+    def close(self):
+        pass
 
 
 def start_server():
@@ -41,6 +70,3 @@ def rest_server():
     # Wait a bit.
     time.sleep(1)
 
-
-def yield_args(*args):
-    return list(args)
