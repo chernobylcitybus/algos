@@ -27,6 +27,7 @@ To install the package one simply issues
    python3.9 -m pip install .
 
 If you would like to install the package in editable mode, you can use
+
 .. code-block:: bash
 
    python3.9 -m pip install --editable .
