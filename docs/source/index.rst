@@ -178,6 +178,30 @@ Observe the following sequence of steps
 
 We can now see the compiled libraries present in the packages, alongside their source files.
 
+Package Usage
+-------------
+
+More can be found in :any:`algos. The API is separated into groups based on the type of algorithm. An example using the
+text module would be to find the anagrams in a given set of words. In python, we could do the following
+
+.. code-block:: bash
+
+   # Generate the input set
+   word_set = {'the', 'car', 'can', 'caused', 'a', 'and', 'during', 'cried', 'by', 'its', 'rat', 'bowel', 'drinking',
+   'elbow', 'bending', 'that', 'while', 'an', 'thing', 'cider', 'like', 'pain', 'cat', 'which', 'in', 'this',
+   'act', 'below', 'is', 'night', 'arc'}
+
+   # Find the anagrams.
+   anagrams_found = anagrams(word_set)
+
+   # Sort in order to compare generated anagrams against expected value.
+   anagrams_found = [sorted(x) for x in anagrams_found]
+   anagrams_found.sort()
+
+   # Print the output
+   print(anagrams_found)
+   [['act', 'cat'], ['arc', 'car'], ['below', 'bowel', 'elbow'], ['cider', 'cried'], ['night', 'thing']]
+
 Command Line Usage
 ------------------
 
@@ -245,10 +269,6 @@ A single request looks like
 
    # Await the result.
    res_data = res.result()
-
-
-
-
 
 
 .. toctree::
