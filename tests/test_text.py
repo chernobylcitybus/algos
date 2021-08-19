@@ -45,9 +45,9 @@ class DataText:
     """
 
     anagrams__unexpected = [
-        (set(), ValueError),
-        (["hello"], TypeError),
-        ({1, 2, 3}, TypeError)
+        (set(), [ValueError, "Empty Set"]),
+        (["hello"], [TypeError, "Input Data Type Not Set"]),
+        ({1, 2, 3}, [TypeError, "Not All Elements of Type str"])
     ]
     """
     Test cases for :func:`algos.text.anagrams`, testing that it raises an error for unexpected inputs. The test cases
@@ -105,5 +105,7 @@ class TestAnagrams:
         in :attr:`DataText.anagrams__unexpected` along with a description of their purpose.
         """
         # Check if error is raised.
-        with pytest.raises(error):
+        with pytest.raises(error[0]) as excinfo:
             anagrams(test_input)
+
+        assert excinfo.match(error[1])

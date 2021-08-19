@@ -56,7 +56,7 @@ def anagrams(word_set: set[str]) -> list[list[str]]:
     # Check that all element of set are of string type.
     if not all([isinstance(x, str) for x in word_set]):
         logger.critical("anagrams - Incorrect Elements Types")
-        raise TypeError("Not All Elements of Type str.")
+        raise TypeError("Not All Elements of Type str")
 
     # Raise ValueError on empty set.
     if len(word_set) == 0:
