@@ -1,5 +1,13 @@
 """
-A general module that contains a variety of helper classes supporting input/output operations.
+A general module that contains a variety of helper classes supporting input/output operations. The classes
+supported thus far are
+
++-------------------------------------+----------------------------------------------------------------------------+
+| class                               | purpose                                                                    |
++=====================================+============================================================================+
+| :class:`.ReadStdIn`                 | Reads input from ``stdin`` in a variety of formats.                        |
++-------------------------------------+----------------------------------------------------------------------------+
+
 """
 import sys
 import logging
@@ -13,10 +21,10 @@ logging.basicConfig(
 )
 
 NumArrTypes = TypeVar("NumArrTypes", list[int], list[float])
-"""Generic variable for numeric arrays."""
+"""Generic variable for numeric arrays. Supports arrays that are of :class:`int` or :class:`float` ."""
 
 NumMatTypes = TypeVar("NumMatTypes", list[list[int]], list[list[float]])
-"""Generic variable for numeric matrices."""
+"""Generic variable for numeric matrices. Supports matrices that are of :class:`int` or :class:`float` ."""
 
 
 def convert_anystr(any_str: Union[str, bytes]) -> str:
@@ -39,7 +47,8 @@ def convert_anystr(any_str: Union[str, bytes]) -> str:
 
 class ReadStdIn:
     """
-    A class that has multiple methods for reading stdin inputs.
+    A class that has multiple methods for reading ``stdin`` inputs. This primarily makes it easier to handle programs
+    that read from ``stdin`` such as :any:`cli` .
 
     :ivar logging.Logger logger: The logger for this class.
     """
@@ -54,6 +63,14 @@ class ReadStdIn:
         """
         Reads an integer from :code:`stdin`. This function expects a single line of input with only an integer present.
         If the input value is not an integer, the program raises an error.
+
+        With an interactive Python session, you can run
+
+        >>> from algos.io import ReadStdIn
+        >>> reader = ReadStdIn()
+        >>> reader.integer()
+        7
+        7
 
         :raises ValueError: If the string is not a recognizable integer.
         :rtype: int
@@ -83,6 +100,23 @@ class ReadStdIn:
         """
         Reads in an array of a given type from :code:`stdin`. If the elements within :code:`stdin` are not all of the
         correct type, the program raises an exception.
+
+        With an interactive Python session, you can run
+
+        >>> from algos.io import ReadStdIn
+        >>> reader = ReadStdIn()
+        >>> reader.array("int")
+        1 2 3
+        [1, 2, 3]
+        >>> reader.array("float")
+        1.0 2.0 3.0
+        [1.0, 2.0, 3.0]
+        >>> reader.array("float")
+        1 2.0 3
+        [1.0, 2.0, 3.0]
+        >>> reader.array("str")
+        hello world
+        ['hello', 'world']
 
         :raises ValueError: If the typ argument is not a supported type.
         :raises ValueError: If the inputs are unsuccessful in mapping to the given type.
@@ -134,7 +168,27 @@ class ReadStdIn:
         """
         Reads an :math:`n*n` matrix from stdin. The input is expected to consist solely of integers. Only reads
         square matrices.
-    
+
+        With an interactive Python session, you can run
+
+        >>> from algos.io import ReadStdIn
+        >>> reader = ReadStdIn()
+        >>> reader.matrix(3)
+        1 2 3
+        4 5 6
+        7 8 9
+        [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        >>> reader.matrix(4)
+        1 2 3 4
+        5 6 7 8
+        1 2 3 4
+        5 6 7 8
+        [[1, 2, 3, 4], [5, 6, 7, 8], [1, 2, 3, 4], [5, 6, 7, 8]]
+
+
+        :raises TypeError: If the number of lines to read is not an integer.
+        :raises ValueError: If n is less than 1.
+        :raises ValueError: If the lengths of the rows are not equal to n.
         :param int n: The dimension of the square matrix.
         :rtype: list[list[int]]
         :return: A list of lists of integers representing the matrix.
@@ -172,11 +226,22 @@ class ReadStdIn:
     
         return M
 
-    def string(self) -> list[str]:
+    @staticmethod
+    def string() -> list[str]:
         """
-        Reads all the lines contained within stdin as a string and yields each line as an element of a list.
+        Reads all the lines contained within ``stdin`` as a string and yields each line as an element of a list. The
+        expected input can be anything, but reads the entirety of ``stdin``.
 
-        :return: The lines read in from stdin as a list.
+        In an interactive, Python session, you can use ^D (CTRL+D) to yield an EOF marker.
+
+        >>> from algos.io import ReadStdIn
+        >>> reader = ReadStdIn()
+        >>> reader.string()
+        hello world
+        how are you
+        ['hello world', 'how are you', '']
+
+        :return: The lines read in from ``stdin`` as a list.
         """
         a: list[str] = "".join(sys.stdin.readlines()).split("\n")
 
