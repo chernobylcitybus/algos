@@ -35,7 +35,10 @@ class MockHTTPConnection:
         pass
 
     def getresponse(self):
-        mock_res = MockHTTPResponse(self.buffer)
+        if isinstance(self.buffer, bytes):
+            mock_res = MockHTTPResponse(self.buffer)
+        else:
+            mock_res = MockHTTPResponse(self.buffer.pop(0))
         return mock_res
 
     def close(self):
