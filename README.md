@@ -219,17 +219,8 @@ backend.
 
 A single request looks like
 
-    # We are targeting the root endpoint of the REST API.
-    root_req = RequestInfo(endpoint="/", method="GET")
-
-    # Create a RequestPool with two workers.
-    req = RequestPool(1, "localhost", 8081)
-
-    # Perform a request to the root endpoint.
-    res = req.single_request(root_req)
-
-    # Clean up the process pool.
-    req.shutdown()
-
-    # Await the result.
-    res_data = res.result()
+    from algosrest.client.request import Request
+    req = Request(2, "localhost", 8081)
+    result = req.text.anagrams(["elbow below car arc bowel"])
+    print(result)
+    [[['below', 'elbow', 'bowel'], ['arc', 'car']]]
