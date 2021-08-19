@@ -54,7 +54,7 @@ class DataText:
     """
 
 
-class TestText():
+class TestText:
     @pytest.mark.parametrize(
         "test_input,expected",
         DataText.anagrams__expected,
