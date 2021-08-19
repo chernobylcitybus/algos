@@ -10,6 +10,9 @@ from algos.text import anagrams
 
 
 class DataText:
+    """
+    Holds the data for :mod:`algos.text` .
+    """
     anagrams__expected = [
         (
             {'the', 'car', 'can', 'caused', 'a', 'and', 'during', 'cried', 'by', 'its', 'rat', 'bowel', 'drinking',
