@@ -1,5 +1,14 @@
 """
-The following are implementations of algorithms that primarily operate on text.
+The following are implementations of algorithms that primarily operate on text. The list of implementations and their
+purposes are
+
++--------------------------------------+-------------------------------------------------------------------+
+| function                             | purpose                                                           |
++======================================+===================================================================+
+| :func:`.anagrams`                    | Given an input word set, it returns a list of lists of words      |
+|                                      | which are anagrams of each other.                                 |
++--------------------------------------+-------------------------------------------------------------------+
+
 """
 import logging
 
@@ -17,6 +26,18 @@ def anagrams(word_set: set[str]) -> list[list[str]]:
     """
     Finds all anagrams of words contained within an input set of words.
 
+    With an interactive Python session, you can run
+
+    >>> from algos.text import anagrams
+    >>> word_set = {'which', 'its', 'thing', 'drinking', 'can', 'car', 'that', 'cider', 'pain', 'and', 'by', 'below', \
+'bowel', 'while', 'a', 'is', 'elbow', 'the', 'bending', 'in', 'during', 'an', 'arc', 'act', 'this', \
+'cat', 'night', 'cried', 'rat', 'like', 'caused'}
+    >>> anagrams(word_set)
+    [['act', 'cat'], ['arc', 'car'], ['cider', 'cried'], ['bowel', 'elbow', 'below'], ['thing', 'night']]
+
+    :raises TypeError: If the word_set is not a set.
+    :raises TypeError: If the elements of the set are not all of type :class:`str` .
+    :raises ValueError: If the word_set is empty.
     :param set[str] word_set: The set of words to find anagrams within.
     :return: A list of lists of anagrams.
     """
