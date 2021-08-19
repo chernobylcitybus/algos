@@ -65,9 +65,6 @@ You can then create the documentation as follows
 
    $ bash scripts/make_docs.sh
 
-Please use the script in order to be able to generate documentation for the tests folder. It adds an \_\_init\_\_.py
-so that sphinx picks up the folder.
-
 **Testing**
 
 There are over 100 tests so far. Both unit tests and integration tests are carried out simultaneously with
@@ -103,7 +100,7 @@ To perform static analysis for the entire project, one can issue
    $ mypy algos algoscli algosrest
    Success: no issues found in 13 source files
 
-To perform static analysis for a signle file, we can use
+To perform static analysis for a single file, we can use
 
 .. code-block:: bash
 
