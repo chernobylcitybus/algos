@@ -37,19 +37,31 @@ def cube(x):
 
 def point(x, y):
     """
-    Tests handling multiple input arguments with the executor.
+    Tests handling multiple input arguments with the executor. Used to test the :class:`.ProcessPool`.
     """
     return x, y
 
 
 class DataRequestInfo:
+    """
+    Data for class :class:`.RequestInfo` .
+    """
     init__expected = [
         (["a", "GET", None], RequestInfo(endpoint="a", method="GET")),
         (["b", "POST", {"data": "something"}], RequestInfo(endpoint="b", method="POST", data={"data": "something"}))
     ]
     """
     Test data for :meth:`.RequestInfo.__init__` that contains expected inputs for this function. Also used by
-    the test :meth:`TestRequestInfo.test_eq__expected`
+    the test :meth:`TestRequestInfo.test_eq__expected`. The test cases are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | GET request                          | Initializes correctly for GET requests.                              |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | POST request                         | Initializes correctly for POST requests and contains correct data.   |
+    +--------------------------------------+----------------------------------------------------------------------+
+    
     """
 
     init__unexpected = [
@@ -64,7 +76,30 @@ class DataRequestInfo:
     ]
     """
     Test data for :meth:`.RequestInfo.__init__` that contains bad input values, and the expected exceptions they
-    should raise.
+    should raise. The test cases are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | invalid type for endpoint            | Tests that a list input raises :class:`TypeError`.                   |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | invalid type for endpoint            | Tests that a set input raises :class:`TypeError`.                    |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | invalid type for method              | Tests that a list input raises :class:`TypeError`.                   |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | invalid type for method              | Tests that a set input raises :class:`TypeError`.                    |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | invalid value for method             | Tests that raises :class:`ValueError` when an incorrect value is     |
+    |                                      | given for method.                                                    |
+    +--------------------------------------+----------------------------------------------------------------------+    
+    | invalid type for data                | Tests that anything but dict input raises :class:`TypeError`.        |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | no data with POST request            | Checks that raises :class:`ValueError` if no data is supplied when   |
+    |                                      | method POST is specified.                                            |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | data supplied with GET               | Raise :class:`ValueError` if data is supplied with method GET.       |
+    +--------------------------------------+----------------------------------------------------------------------+
+       
     """
 
 
@@ -78,7 +113,18 @@ class DataProcessPool:
         ([point, [1, 3], [2, 4]], [(1, 2), (3, 4)])
     ]
     """
-    Test data for :meth:`.ProcessPool.batch` and :meth:`.ProcessPool.single` .
+    Test data for :meth:`.ProcessPool.batch` and :meth:`.ProcessPool.single` . The test cases are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | 1 worker, univariate function        | Test a function that takes a single argument.                        |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 1 worker, univariate function        | Test a function that takes a single argument.                        |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 1 worker, bivariate function         | Test a function that takes multiple arguments.                       |
+    +--------------------------------------+----------------------------------------------------------------------+
+            
     """
 
 
@@ -98,7 +144,16 @@ class DataRequestPool:
         )
     ]
     """
-    Test data for :meth:`.RequestPool.chunks`.
+    Test data for :meth:`.RequestPool.chunks`. The test cases are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | split into chunks of 1               | See that chunks are evenly distributed into 3 lists.                 |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | split into chunks of 2               | See that function correctly handles remainder when not a multiple.   |
+    +--------------------------------------+----------------------------------------------------------------------+
+    
     """
 
     chunks__unexpected = [
@@ -110,7 +165,19 @@ class DataRequestPool:
          )
     ]
     """
-    Test data for :meth:`.RequestPool.chunks` and exceptions raised.
+    Test data for :meth:`.RequestPool.chunks` and exceptions raised. The test cases are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | non integer given for chunk size     | Check that we raise :class:`ValueError` if anything but int is given.|
+    +--------------------------------------+----------------------------------------------------------------------+
+    | array not given for data             | Check that we raise :class:`ValueError` if anything but a list is    |
+    |                                      | given.                                                               |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | incorrect element type               | Check that we raise :class:`TypeError` if any of the elements are    |
+    |                                      | of the :class:`.RequestInfo` type.                                   |
+    +--------------------------------------+----------------------------------------------------------------------+
     """
 
     init__unexpected = [
@@ -121,7 +188,23 @@ class DataRequestPool:
         ([1, "localhost", 0], [ValueError, "Invalid port number given"]),
     ]
     """
-    Test data for :meth:`.RequestPool.__init__` and exceptions raised.
+    Test data for :meth:`.RequestPool.__init__` and exceptions raised. The test cases are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | invalid type for number of workers   | Check that we raise :class:`TypeError` on anything but integer input.|
+    +--------------------------------------+----------------------------------------------------------------------+
+    | invalid type for hostname            | Check that we raise :class:`TypeError` on anything but str input.    |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | invalid type for port                | Check that we raise :class:`TypeError` on anything but integer input.|
+    +--------------------------------------+----------------------------------------------------------------------+
+    | blank hostname                       | Check that we raise :class:`ValueError` if hostname is blank.        |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | invalid port number                  | Check that we raise :class:`ValueError` if the port number is less   |
+    |                                      | than 1.                                                              |
+    +--------------------------------------+----------------------------------------------------------------------+
+    
     """
 
     batch__expected = [
@@ -133,7 +216,21 @@ class DataRequestPool:
 
     ]
     """
-    Test data for :meth:`.RequestPool.batch_request` to verify that the correct responses are returned.
+    Test data for :meth:`.RequestPool.batch_request` to verify that the correct responses are returned. The test cases 
+    are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | 1 worker, 1 request                  | Check the case of a single worker and request.                       |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 1 worker, multiple requests          | Check that we get the correct response for multiple requests.        |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 2 workers, 1 request                 | Check that we can make requests with multiple processes.             |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | post request                         | Test the POST request functionality.                                 |
+    +--------------------------------------+----------------------------------------------------------------------+
+    
     """
 
     request__unexpected = [
@@ -143,7 +240,18 @@ class DataRequestPool:
     ]
     """
     Test data for :meth:`.RequestPool.batch_request` to verify that :meth:`.RequestPool.request` raises exceptions
-    for invalid inputs.
+    for invalid inputs. The test cases 
+    are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | incorrect input type                 | Check that we raise :class:`TypeError` if input is not a list.       |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | incorrect element type               | Check that we raise :class:`TypeError` if elements of input list     |
+    |                                      | are not all of :class:`.RequestInfo` type.                           |
+    +--------------------------------------+----------------------------------------------------------------------+
+    
     """
 
 
@@ -501,7 +609,7 @@ class TestRequestPool:
     )
     def test_request__unexpected(self, test_input, error):
         """
-        Tests :meth:`.RequestPool.batch_request` . The input data used is :attr:`DataRequestPool.request__unexpected` ,
+        Tests :meth:`.RequestPool.request` . The input data used is :attr:`DataRequestPool.request__unexpected` ,
         with corresponding expected output.
         """
         # Create a RequestPool with two workers.
@@ -521,6 +629,11 @@ class TestRequestPool:
         assert excinfo.match(error[1])
 
     def test_single_request__expected(self):
+        """
+        Test the single request functionality. This can be used to submit individual items to the :class:`.ProcessPool`.
+        However, a batch request with one input list yields identical results and will be what is used by the
+        rest client the vast majority of the time.
+        """
         # Create a RequestPool with two workers.
         req = RequestPool(1, "localhost", 8081)
 

@@ -1,3 +1,7 @@
+"""
+Tests of the rest client against the current version of the rest server. Uses the :func:`.rest_server_fixture`
+to get a production instance of the server running.
+"""
 import pytest
 import json
 from algosrest.client.parallel import RequestPool, RequestInfo
@@ -26,13 +30,24 @@ class DataRequestPool:
 
     ]
     """
-    Test data for :meth:`.RequestPool.batch_request` to verify that the correct responses are returned.
+    Test data for :meth:`.RequestPool.batch_request` to verify that the correct responses are returned. The test cases 
+    are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | 1 worker, 1 request                  | Test the simplest case of making a single request with one worker.   |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 1 worker, 2 requests                 | Test that a single worker making multiple requests works.            |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 2 workers, 1 request each            | Test the case of multiple workers making requests.                   |
+    +--------------------------------------+----------------------------------------------------------------------+
     """
 
 
 class TestRequestPool:
     """
-    Test class for :class:`.RequestPool` .
+    Test class for :class:`.RequestPool` . Gives scope to the :func:`.rest_server_fixture` .
     """
     @pytest.mark.parametrize(
         "test_input,expected",
@@ -65,8 +80,8 @@ class TestRequestPool:
 
     def test_single_request__expected(self, rest_server_fixture):
         """
-        Tests :meth:`.RequestPool.single_request` . The latest version of the :func:`.rest_server_fixture` is used to receive
-        the requests and send back the responses.
+        Tests :meth:`.RequestPool.single_request` . The latest version of the :func:`.rest_server_fixture` is used to
+        receive the requests and send back the responses.
         """
         # Create a RequestPool with two workers.
         req = RequestPool(1, "localhost", 8081)
