@@ -1,6 +1,17 @@
+"""
+This module yields the command line entry points to the algorithms in :mod:`algos.text` . The :class:`TextCli` class
+corresponds to the ``algos-text`` command line interface. The list of methods and their purposes are described below.
+
++--------------------------------+-------------------------------------------------------------------------------+
+| Name                           | purpose                                                                       |
++================================+===============================================================================+
+| :meth:`.TextCli.anagrams`      | Finds all the anagrams in the given input.                                    |
++--------------------------------+-------------------------------------------------------------------------------+
+
+"""
 from algos.text import anagrams
 from algos.io import ReadStdIn
-from algoscli.common import Function, Component
+from algoscli.common import Function
 
 
 component_functions: dict[str, list[Function]] = {
@@ -11,6 +22,11 @@ component_functions: dict[str, list[Function]] = {
         )
     ]
 }
+"""
+The list values are the subcommands to the ``algos-text`` command line group. The information is used by argparse to
+check the command line input against the expected arguments for the sub commands. The :class:`.Function` s also contain
+the help information to be displayed by :mod:`argparse` .
+"""
 
 
 class TextCLI:
