@@ -1,5 +1,5 @@
 """
-Tests for :mod:`algoscli.common`.
+Tests for :mod:`algoscli.common`. Primarily deal with command line processing.
 """
 import argparse
 import pytest
@@ -38,6 +38,8 @@ Example components for :func:`.parse_arguments` . With arguments.
 def test_parse_arguments_none():
     """
     Test the :func:`.parse_arguments` where there are no named command line inputs. Uses :data:`component_functions`.
+
+    We patch :attr:`sys.argv` and call parse_arguments to see that it correctly processes the component functions.
     """
     cli_argv = ["algos-text", "anagrams"]
 
@@ -55,6 +57,10 @@ def test_parse_arguments_none():
 def test_parse_arguments_args():
     """
     Test the :func:`.parse_arguments` where there are named command line inputs. Uses :data:`component_functions2`.
+
+    We patch :attr:`sys.argv` and call parse_arguments to see that it correctly processes the component functions. We
+    also check if the given command line arguments are accessible within the returned namespace, and have the correct
+    values that were supplied.
     """
     cli_argv = ["algos-text", "anagrams", "True"]
 
