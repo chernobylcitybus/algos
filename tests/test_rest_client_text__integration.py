@@ -60,7 +60,7 @@ class TestText:
         DataText.anagrams__expected,
         ids=[str(v) for v in range(len(DataText.anagrams__expected))]
     )
-    def test_anagrams__expected(self, rest_server, test_input, expected):
+    def test_anagrams__expected(self, rest_server_fixture, test_input, expected):
         """
         Test the ``/text/anagrams`` endpoint with expected inputs. Uses :meth:`algosrest.server.text.TextREST.anagrams` .
         """

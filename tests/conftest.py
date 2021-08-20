@@ -55,7 +55,7 @@ def start_server():
 
 
 @pytest.fixture(scope="class")
-def rest_server():
+def rest_server_fixture():
     # Start the server in a thread.
     server_thread = threading.Thread(target=start_server)
     server_thread.start()

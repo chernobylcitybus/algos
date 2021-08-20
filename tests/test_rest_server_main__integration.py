@@ -45,7 +45,7 @@ def test_shutdown():
 
 
 class TestMain:
-    def test_root(self, rest_server):
+    def test_root(self, rest_server_fixture):
         """
         Check if the root endpoint returns a status message.
         """
@@ -55,7 +55,7 @@ class TestMain:
         # Check that the result is as expected.
         assert json.loads(output.decode()) == {"status": "okay"}
 
-    def test_post_root(self, rest_server):
+    def test_post_root(self, rest_server_fixture):
         """
         Check if the root endpoint returns the data sent with the POST request.
         """

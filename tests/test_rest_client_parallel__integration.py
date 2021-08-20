@@ -39,10 +39,10 @@ class TestRequestPool:
         DataRequestPool.batch__expected,
         ids=[str(v) for v in range(len(DataRequestPool.batch__expected))]
     )
-    def test_batch_request__expected(self, rest_server, test_input, expected):
+    def test_batch_request__expected(self, rest_server_fixture, test_input, expected):
         """
         Tests :meth:`.RequestPool.batch_request` . The input data used is :attr:`DataRequestPool.batch__expected` ,
-        with corresponding expected output. The latest version of the :func:`.rest_server` is used to receive
+        with corresponding expected output. The latest version of the :func:`.rest_server_fixture` is used to receive
         the requests and send back the responses.
         """
         # Create a RequestPool with two workers.
@@ -63,9 +63,9 @@ class TestRequestPool:
         # Verify that the results are as expected.
         assert res_cleaned == expected
 
-    def test_single_request__expected(self, rest_server):
+    def test_single_request__expected(self, rest_server_fixture):
         """
-        Tests :meth:`.RequestPool.single_request` . The latest version of the :func:`.rest_server` is used to receive
+        Tests :meth:`.RequestPool.single_request` . The latest version of the :func:`.rest_server_fixture` is used to receive
         the requests and send back the responses.
         """
         # Create a RequestPool with two workers.

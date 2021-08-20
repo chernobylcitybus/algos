@@ -1,6 +1,6 @@
 """
 Test the REST server's responses for the text algorithms in :mod:`algos.text` . This module depends on the use of
-the pytest fixture rest_server which does the set-up/teardown for an actual instance of the rest server.
+the pytest fixture rest_server_fixture which does the set-up/teardown for an actual instance of the rest server.
 """
 import textwrap
 import subprocess
@@ -56,7 +56,7 @@ class DataText:
 
 class TestText:
     """
-    We use the pytest fixture rest_server which has class scope, so we need to group all our code together into one
+    We use the pytest fixture rest_server_fixture which has class scope, so we need to group all our code together into one
     class, to prevent repeatedly starting up and shutting down the fastapi server, which can greatly increase
     the runtime of the tests.
     """
@@ -65,7 +65,7 @@ class TestText:
         DataText.anagrams__expected,
         ids=[str(v) for v in range(len(DataText.anagrams__expected))]
     )
-    def test_anagrams__expected(self, test_input, expected, rest_server):
+    def test_anagrams__expected(self, test_input, expected, rest_server_fixture):
         """
         Test the ``/text/anagrams`` endpoint with expected inputs. Uses :meth:`algosrest.server.text.TextREST.anagrams`
         """
@@ -90,7 +90,7 @@ class TestText:
         DataText.anagrams__unexpected,
         ids=[repr(v) for v in DataText.anagrams__unexpected]
     )
-    def test_anagrams__unexpected(self, test_input, expected, rest_server):
+    def test_anagrams__unexpected(self, test_input, expected, rest_server_fixture):
         """
         Test the ``/text/anagrams`` endpoint with expected inputs. Uses :meth:`algosrest.server.text.TextREST.anagrams`
         """
