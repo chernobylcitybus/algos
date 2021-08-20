@@ -145,7 +145,7 @@ def rest_server_fixture():
     .. code-block:: py
 
        class TestX:
-           def test_xxx(rest_server, ...):
+           def test_xxx(rest_server_fixture, ...):
                make_rest_request()
 
     """
