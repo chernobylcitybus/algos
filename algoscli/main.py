@@ -18,6 +18,8 @@ All algorithms read input data through ``stdin`` . A typical usage would be
 """
 import argparse
 import sys
+from collections.abc import Callable
+from typing import Optional
 
 from algoscli.text import TextCLI
 from algoscli.common import parse_arguments
@@ -49,10 +51,10 @@ def text():
     text_instance: TextCLI = TextCLI()
 
     # Create a dictionary so that we don't have a massive if-else statement to choose the subcommand handler.
-    handlers = {"anagrams": text_instance.anagrams}
+    handlers: dict[str, Callable[[], None]] = {"anagrams": text_instance.anagrams}
 
     # Get the appropriate handler, depending on sys.argv[1] .
-    handler = handlers.get(sys.argv[1], None)
+    handler: Optional[Callable[[], None]] = handlers.get(sys.argv[1], None)
 
     # Handle the case of an unrecognized command.
     if handler is None:
