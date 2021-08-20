@@ -1,7 +1,6 @@
 """
 `Conftest <https://docs.pytest.org/en/6.1.2/writing_plugins.html#localplugin>`_
-allows the creation of local plugins for pytest. This
-module should never be imported as pytest reads it in for the
+allows the creation of local plugins for pytest. This module should never be imported as pytest reads it in for the
 tests.
 
 Contains a variety of fixtures that will have scope for all tests.

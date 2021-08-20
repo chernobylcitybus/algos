@@ -46,3 +46,22 @@ Integration
    :members:
    :undoc-members:
    :show-inheritance:
+
+REST Client
+-----------
+
+Unit
++++++
+
+.. automodule:: tests.test_rest_client_text__unit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Integration
++++++++++++
+
+.. automodule:: tests.test_rest_client_text__integration
+   :members:
+   :undoc-members:
+   :show-inheritance:
