@@ -125,7 +125,7 @@ class MockHTTPConnection:
 
 def start_server():
     """
-    Start the server process in a separate thread. This opens a subprocess with the command ``uvicorn mainLapp --reload
+    Start the server process in a separate thread. This opens a subprocess with the command ``uvicorn main app --reload
     --host 127.0.0.1 --port 8081`` .
     """
     os.chdir("algosrest/server/")
