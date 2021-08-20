@@ -49,8 +49,21 @@ class DataText:
         ),
     ]
     """
-    Test cases for :meth:`algosrest.client.text.TextREST.anagrams` ., testing that it functions correctly for 
-    expected inputs.
+    Test cases for :meth:`algosrest.client.text.TextRest.anagrams`, testing that it functions correctly for 
+    expected inputs. The test cases are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | 1 worker, many anagrams              | Check if multiple anagrams are identified in the results.            |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 1 worker, 1 set of anagrams          | Check if a single result is returned correctly.                      |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 1 worker, empty set                  | Check that we get back an empty result set.                          |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 2 workers, many sets of anagrams     | Check if batch requests work.                                        |
+    +--------------------------------------+----------------------------------------------------------------------+
+    
     """
 
     anagrams__unexpected = [
@@ -58,12 +71,21 @@ class DataText:
         ([dict()], [TypeError, "Elements of input not all string type"]),
     ]
     """
-    Test cases for :meth:`algosrest.client.text.TextREST.anagrams` ., testing that it raises HTTPExceptions for
+    Test cases for :meth:`algosrest.client.text.TextREST.anagrams`, testing that it raises HTTPExceptions for
     unexpected input.
     """
 
 
 class TestText:
+    """
+    Test the REST client requests for text algorithms. Care needs to be taken in cases of two or more worker processes,
+    to ensure that the expected output is not subject to race conditions when patching with :class:`.MockHTTPConnection`
+    In the simple case of testing the requests with a single worker process, it is permissible to use the buffer with
+    a :class:`bytes` or :class:`list` value. In the case of two or more worker processes (where there is more than one
+    chunk for the :class:`ProcessPool`), we must use the dictionary which stores the expected json response with the
+    input json as its key. This allows workers to safely read the expected outputs and not be subject to a race
+    condition, as in the case of popping from a list of expected responses in a sequential fashion.
+    """
     @pytest.mark.parametrize(
         "test_input,expected",
         DataText.anagrams__expected,
@@ -71,7 +93,10 @@ class TestText:
     )
     def test_anagrams__expected(self, test_input, expected):
         """
-        Test the ``/text/anagrams`` endpoint with expected inputs. Uses :meth:`algosrest.server.text.TextREST.anagrams` .
+        Test the ``/text/anagrams`` endpoint with expected inputs. Uses :meth:`algosrest.server.text.TextREST.anagrams`.
+
+        We use the :class:`.MockHTTPConnection` to patch the outgoing requests and the incoming responses from the
+        server.
         """
         # Create a RequestPool instance which will carry out our requests.
         req = RequestPool(2, "localhost", 8081)

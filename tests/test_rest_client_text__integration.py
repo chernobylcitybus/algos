@@ -49,12 +49,30 @@ class DataText:
         ),
     ]
     """
-    Test cases for :meth:`algosrest.client.text.TextREST.anagrams` ., testing that it functions correctly for 
-    expected inputs.
+    Test cases for :meth:`algosrest.client.text.TextRest.anagrams`, testing that it functions correctly for 
+    expected inputs. The test cases are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | 1 worker, many anagrams              | Check if multiple anagrams are identified in the results.            |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 1 worker, 1 set of anagrams          | Check if a single result is returned correctly.                      |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 1 worker, empty set                  | Check that we get back an empty result set.                          |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 2 workers, many sets of anagrams     | Check if batch requests work.                                        |
+    +--------------------------------------+----------------------------------------------------------------------+
+    
     """
 
 
 class TestText:
+    """
+    This class is needed in order to use the :func:`rest_server_fixture` to conduct integration tests against the
+    current :mod:`algosrest.server` version. The tests herein are for the text based algorithms found in
+    :mod:`algos.text` .
+    """
     @pytest.mark.parametrize(
         "test_input,expected",
         DataText.anagrams__expected,
@@ -62,7 +80,9 @@ class TestText:
     )
     def test_anagrams__expected(self, rest_server_fixture, test_input, expected):
         """
-        Test the ``/text/anagrams`` endpoint with expected inputs. Uses :meth:`algosrest.server.text.TextREST.anagrams` .
+        Test the ``/text/anagrams`` endpoint with expected inputs. Uses :meth:`algosrest.server.text.TextREST.anagrams`.
+        We make use of the :func:`rest_server_fixture` to spawn an actual instance of the server to test the client
+        against.
         """
         # Create a RequestPool instance which will carry out our requests.
         req = RequestPool(2, "localhost", 8081)
