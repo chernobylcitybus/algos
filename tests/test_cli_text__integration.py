@@ -34,6 +34,21 @@ class DataText:
     ]
     """
     Test cases for :func:`algoscli.text.TextCLI.anagrams`, testing that it functions correctly for expected inputs.
+    
+    The test cases are as follows
+
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | many anagram lists                   | Test to see if multiple lists of anagrams are produced when input    |
+    |                                      | set has multiple instances of different words which are anagrams of  |
+    |                                      | each other.                                                          |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | single anagram list                  | Test to see if a single set of anagrams is identified.               |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | no anagrams                          | Test to see if a non-empty set with no anagrams produces no results  |
+    +--------------------------------------+----------------------------------------------------------------------+
+    
     """
 
 
