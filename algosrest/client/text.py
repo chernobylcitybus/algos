@@ -1,3 +1,14 @@
+"""
+This module yields the REST entry points to the algorithms in :mod:`algosrest.server.text` . The :class:`TextRest` class
+corresponds to the ``/text`` REST endpoint. The list of methods and their purposes are described below.
+
++--------------------------------+-------------------------------------------------------------------------------+
+| Name                           | purpose                                                                       |
++================================+===============================================================================+
+| :meth:`.TextRest.anagrams`     | Finds all the anagrams in the given input.                                    |
++--------------------------------+-------------------------------------------------------------------------------+
+
+"""
 import json
 import math
 from algosrest.client.parallel import RequestPool, RequestInfo
