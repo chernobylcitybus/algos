@@ -3,6 +3,8 @@ The unit test module for :mod:`algoscli.main.text` . Command line stdin input is
 standard output through capsys to verify the results.
 """
 import io
+import re
+import argparse
 import sys
 import pytest
 from unittest.mock import patch
@@ -36,7 +38,21 @@ class DataText:
         )
     ]
     """
-    Test cases for :func:`algoscli.text.TextCLI.anagrams`, testing that it functions correctly for expected inputs.
+    Test cases for :func:`algoscli.text.TextCLI.anagrams`, testing that it functions correctly for expected inputs. 
+    The test cases are as follows
+
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | many anagram lists                   | Test to see if multiple lists of anagrams are produced when input    |
+    |                                      | set has multiple instances of different words which are anagrams of  |
+    |                                      | each other.                                                          |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | single anagram list                  | Test to see if a single set of anagrams is identified.               |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | no anagrams                          | Test to see if a non-empty set with no anagrams produces no results  |
+    +--------------------------------------+----------------------------------------------------------------------+
+
     """
 
 
@@ -77,3 +93,26 @@ class TestAnagrams:
         # Check that the output is as expected.
         assert anagrams_found == expected
 
+
+class TestText:
+    """
+    Test functionality specific to command line handler.
+    """
+    def test_invalid_subcommand(self):
+        """
+        Check that the :func:`algoscli.main.text` raises :class:`argparse.ArgumentError` when an invalid subcommand is
+        given.
+        """
+        # Command line arguments
+        cli_argv = ["algos-text", "does_not_exist"]
+
+        # Patch sys.argv to have correct cli arguments.
+        with patch.object(sys, "argv", cli_argv):
+            # Patch exit as argparse calls exit on non matching command line.
+            with patch.object(sys, "exit", lambda x: 0):
+                # Try to raise the exception
+                with pytest.raises(ValueError) as excinfo:
+                    text()
+                # Check that we raised the expected exception by matching the exception string.
+
+                assert excinfo.match(re.escape("Unknown subcommand does_not_exist"))
