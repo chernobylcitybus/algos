@@ -45,6 +45,10 @@ def test_shutdown():
 
 
 class TestMain:
+    """
+    We make use of a class to test the functions in an integration test setting as we need access to the
+    :func:`.rest_server_fixture` in order to run an actual instance of the development server.
+    """
     def test_root(self, rest_server_fixture):
         """
         Check if the root endpoint returns a status message.
