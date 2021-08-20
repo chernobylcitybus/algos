@@ -65,6 +65,14 @@ You can then create the documentation as follows
 
    $ bash scripts/make_docs.sh
 
+Mathematical notation is enabled in this documentation to keep our mathematician friends happy. We know it is difficult
+for them to look at simple English, so we have given them the ability to simplify things for themselves by looking
+at the complex symbols and notation that makes the most sense to them. So for example, one can go wild
+
+.. math::
+
+   p_{ij}(s, t) = \delta_{ij}e^{-\int_{s}^{t} \lambda_{j}(u)du} + \int_{0}^{t-s}\sum\limits_{k\neq j} p_{ik}(s, t-w)\mu_{kj}(t-w)e^{\int_{t-w}^{t}\lambda_{j}(u)du}dw
+
 **Testing**
 
 There are over 100 tests so far. Both unit tests and integration tests are carried out simultaneously with
