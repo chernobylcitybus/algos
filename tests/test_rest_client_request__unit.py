@@ -1,3 +1,6 @@
+"""
+Unit tests for the :class:`.Request` meta object.
+"""
 from algosrest.client.parallel import RequestPool, ProcessPool
 from algosrest.client.text import TextRest
 from algosrest.client.request import Request
@@ -8,6 +11,11 @@ class TestRequest:
     Test that the container API works as expected.
     """
     def test_init(self):
+        """
+        Does some superfiscial testing to see if we intialized correctly. Checks that our :class:`.RequestPool`,
+        :class:`.ProcessPool` and :class:`.TextRest` were instantiated and that the instance variables were
+        assigned correctly.
+        """
         # Create our request object.
         req = Request(2, "localhost", 8081)
 
