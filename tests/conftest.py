@@ -12,6 +12,7 @@ import threading
 import time
 import os
 import subprocess
+import json
 
 
 class MockHTTPResponse:
@@ -29,15 +30,27 @@ class MockHTTPConnection:
     def __init__(self, hostname, port):
         self.hostname = hostname
         self.port = port
+        self.current_request = ""
 
     def request(self, *args, **kwargs):
+        """
+        The :class:`MockHTTPConnection` is a different instance for each multiprocessing worker i.e. a different
+        object in memory for each. So, assigning the request body to the :attr:`MockHTTPConnect.current_request`
+        variable works safely, as it is linearly servicing one process.
+        """
+        # Get the body
+        body = kwargs.get("body")
+
+        self.current_request = kwargs.get("body")
         pass
 
     def getresponse(self):
         if isinstance(self.buffer, bytes):
             mock_res = MockHTTPResponse(self.buffer)
-        else:
+        elif isinstance(self.buffer, list):
             mock_res = MockHTTPResponse(self.buffer.pop(0))
+        elif isinstance(self.buffer, dict):
+            mock_res = MockHTTPResponse(self.buffer[self.current_request])
         return mock_res
 
     def close(self):

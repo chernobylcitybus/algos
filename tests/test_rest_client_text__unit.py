@@ -82,9 +82,25 @@ class TestText:
         # Create test input string.
         str_list = [" ".join(list(x)) for x in test_input]
 
-        # Set the output of the MockHTTPConnection to be the expected response. In this case, we are using using a list
-        # to store the output of successive requests.
-        MockHTTPConnection.buffer = [json.dumps(x).encode() for x in expected]
+        # Set the output of the MockHTTPConnection to be the expected response.
+        # If just one process worker is used
+        if len(expected) == 1:
+            # #e are using using a list to store the output of successive requests.
+            MockHTTPConnection.buffer = [json.dumps(x).encode() for x in expected]
+        # Otherwise, we are using more than one worker
+        else:
+            # We need to give the buffer as a dict so that the parallel processes can find the correct input given
+            # the inputs to the request.
+            buffer = dict()
+            # This is the data the server receives in the body of the request.
+            buffers = [bytes(json.dumps({"input": x}).encode("utf-8")) for x in str_list]
+            for i in range(len(buffers)):
+                # We us the input data as the key and output data as the expected result. We technically
+                # should use an actual result returned by anagrams, but the expected result is just
+                # the sorted version of that.
+                buffer.update({buffers[i]: bytes(json.dumps(expected[i]).encode("utf-8"))})
+
+            MockHTTPConnection.buffer = buffer
 
         # Patch the connection to before we perform the request so it received our mock data.
         with patch.object(http.client, "HTTPConnection", MockHTTPConnection):
@@ -99,8 +115,8 @@ class TestText:
         # Clean up the RequestPool workers.
         req.shutdown()
 
+        # Check that the result is as expected.
         assert anagrams_found == expected
-
 
     @pytest.mark.parametrize(
         "test_input,error",
