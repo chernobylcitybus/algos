@@ -69,6 +69,9 @@ class TestAnagrams:
         """
         Test that the :func:`algoscli.text.TextCLI.anagrams` function works properly for expected inputs. Test input
         can be found in :attr:`DataText.anagrams__expected` .
+
+        We patch :attr:`sys.argv` with our desired command line inputs and monkeypatch ``stdin`` with our desired
+        text input stream.
         """
         # Command line arguments
         cli_argv = ["algos-text", "anagrams"]
@@ -102,6 +105,9 @@ class TestText:
         """
         Check that the :func:`algoscli.main.text` raises :class:`argparse.ArgumentError` when an invalid subcommand is
         given.
+
+        We patch sys.argv to put in our desired command line arguments, sys.exit in order to stop argparse from
+        exiting and then we try to raise the exception for an invalid subcommand.
         """
         # Command line arguments
         cli_argv = ["algos-text", "does_not_exist"]
