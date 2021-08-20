@@ -1,11 +1,11 @@
 """
-This module yields the command line entry points to the algorithms in :mod:`algos.text` . The :class:`TextCli` class
+This module yields the command line entry points to the algorithms in :mod:`algos.text` . The :class:`TextCLI` class
 corresponds to the ``algos-text`` command line interface. The list of methods and their purposes are described below.
 
 +--------------------------------+-------------------------------------------------------------------------------+
 | Name                           | purpose                                                                       |
 +================================+===============================================================================+
-| :meth:`.TextCli.anagrams`      | Finds all the anagrams in the given input.                                    |
+| :meth:`.TextCLI.anagrams`      | Finds all the anagrams in the given input.                                    |
 +--------------------------------+-------------------------------------------------------------------------------+
 
 """
