@@ -31,6 +31,8 @@ def text():
     | :func:`algos.text.anagrams`             |
     +-----------------------------------------+
 
+    :raises ValueError: If the subcommand is not recognized.
+
     """
     # Import the text component functions
     from algoscli.text import component_functions
