@@ -72,7 +72,17 @@ class DataText:
     ]
     """
     Test cases for :meth:`algosrest.client.text.TextREST.anagrams`, testing that it raises HTTPExceptions for
-    unexpected input.
+    unexpected input. The test cases
+    are as follows
+
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | input not a list of strings          | Check that we raise a :class:`TypeError` .                           |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | element of input list not string     | See that we raise :class:`TypeError` if even one element is not str. |
+    +--------------------------------------+----------------------------------------------------------------------+
+     
     """
 
 
