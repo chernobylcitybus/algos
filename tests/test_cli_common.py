@@ -34,6 +34,21 @@ component_functions2: dict[str, list[Function]] = {
 Example components for :func:`.parse_arguments` . With arguments.
 """
 
+component_functions3: dict[str, list[Function]] = {
+    "text": [
+        Function(
+            "anagrams",
+            "Returns and words which are anagrams of each other, from stdin input. Prints the result to stdout",
+            args=[
+                ("--eval", "Eval the input.")
+            ]
+        )
+    ]
+}
+"""
+Example components for :func:`.parse_arguments` . With optional arguments.
+"""
+
 
 def test_parse_arguments_none():
     """
@@ -73,3 +88,24 @@ def test_parse_arguments_args():
         )
 
     assert args.eval == "True"
+
+
+def test_parse_arguments_args_optional():
+    """
+    Test the :func:`.parse_arguments` where there are named command line inputs. Uses :data:`component_functions3`.
+
+    We patch :attr:`sys.argv` and call parse_arguments to see that it correctly processes the component functions. We
+    also check if the given command line arguments are accessible within the returned namespace, and have the correct
+    values that were supplied.
+    """
+    cli_argv = ["algos-text", "anagrams", "--eval"]
+
+    with patch.object(sys, "argv", cli_argv):
+        args: argparse.Namespace = parse_arguments(
+            "text",
+            "Some description",
+            "Some help",
+            component_functions3
+        )
+
+    assert args.eval is True

@@ -151,10 +151,21 @@ def parse_arguments(
             # For each argument
             for arg in func.args:
                 # Add the argument to the function parser, with help text.
-                func_parser.add_argument(
-                    arg[0],
-                    help=arg[1]
-                )
+                # If we are dealing with an optional argument
+                if arg[0].startswith("--"):
+                    # We only support optional arguments that just are True or False.
+                    func_parser.add_argument(
+                        arg[0],
+                        action=argparse.BooleanOptionalAction,
+                        help=arg[1]
+                    )
+                # Otherwise we have a positional argument
+                else:
+                    # We don't need to add an action in this case.
+                    func_parser.add_argument(
+                        arg[0],
+                        help=arg[1]
+                    )
 
     # Parse the arguments and return a namespace of the parsed arguments.
     return parser.parse_args()
