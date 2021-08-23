@@ -2,7 +2,7 @@
 Test the REST server's responses for the text algorithms in :mod:`algos.text` .
 """
 import pytest
-from algosrest.server.main import app, anagrams
+from algosrest.server.main import app
 
 from fastapi import Response
 from fastapi.testclient import TestClient
@@ -37,8 +37,18 @@ class DataText:
         )
     ]
     """
-    Test cases for :meth:`algosrest.server.text.TextREST.anagrams` ., testing that it functions correctly for 
-    expected inputs.
+    Test cases for :meth:`algosrest.server.text.TextREST.anagrams`, testing that it functions correctly for 
+    expected inputs. The test cases are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | many anagrams                        | Check if multiple anagrams are identified in the results.            |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | 1 set of anagrams                    | Check if a single result is returned correctly.                      |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | empty set                            | Check that we get back an empty result set.                          |
+    +--------------------------------------+----------------------------------------------------------------------+
     """
 
     anagrams__unexpected = [
@@ -46,8 +56,16 @@ class DataText:
         ({"input": 1}, (400, {"detail": "Unsupported Type"}))
     ]
     """
-    Test cases for :meth:`algosrest.server.text.TextREST.anagrams` ., testing that it raises HTTPExceptions for
-    unexpected input.
+    Test cases for :meth:`algosrest.server.text.TextREST.anagrams`, testing that it raises HTTPExceptions for
+    unexpected input. The test cases are as follows
+    
+    +--------------------------------------+----------------------------------------------------------------------+
+    | description                          | reason                                                               |
+    +======================================+======================================================================+
+    | no input key found                   | Check that we send a 400 response if the "input" key was not found.  |
+    +--------------------------------------+----------------------------------------------------------------------+
+    | incorrect input type                 | Check that we send a 400 response when we receive incorrect input.   |
+    +--------------------------------------+----------------------------------------------------------------------+
     """
 
 
