@@ -11,7 +11,7 @@ import re
 import pickle
 import pytest
 from multiprocessing import shared_memory
-from algos.io import ReadStdIn, WriteShMem, convert_anystr
+from algos.io import ReadStdIn, ShMem, convert_anystr
 
 
 def test_convert_anystr():
@@ -412,9 +412,9 @@ class TestReadStdIn:
         assert reader.string() == expected
 
 
-class TestWriteShMem:
+class TestShMem:
     """
-    Test cases for :class:`.WriteShMem`.
+    Test cases for :class:`.ShMem`.
     """
     def test_init(self):
         """
@@ -429,7 +429,7 @@ class TestWriteShMem:
         +--------------------------------------+----------------------------------------------------------------------+
         """
         # Create a shared memory object. At this stage, there should be none named algoscli.
-        writer = WriteShMem("algoscli")
+        writer = ShMem("algoscli")
 
         # Check that we have the initial data in the buffer.
         assert pickle.loads(bytes(writer.sm_index.buf)) == {"algoscli"}
@@ -454,7 +454,7 @@ class TestWriteShMem:
         sm_index.buf[:n_sm_index] = sm_index_data[:n_sm_index]
 
         # Create a shared memory object. At this stage, there should be the object created above named algoscli.
-        writer = WriteShMem("algoscli")
+        writer = ShMem("algoscli")
 
         # Check that we have the initial data in the buffer.
         assert pickle.loads(bytes(writer.sm_index.buf)) == {"already exists"}
@@ -465,11 +465,11 @@ class TestWriteShMem:
 
     def test_read_index(self):
         """
-        Test that :meth:`.WriteShMem.read_index` returns the correct current index for all shared memory objects
+        Test that :meth:`.ShMem.read_index` returns the correct current index for all shared memory objects
         allocated within the namespace.
         """
         # Create a shared memory object.
-        writer = WriteShMem("test")
+        writer = ShMem("test")
 
         # Read the index.
         index = writer.read_index()
@@ -483,10 +483,11 @@ class TestWriteShMem:
 
     def test_write_index(self):
         """
-        Test that :meth:`.WriteShMem.write_index` correctly updates the shared memory object index.
+        Test that :meth:`.ShMem.write_index` correctly updates the shared memory object index. Checks that the shared
+        memory buffer contains the updated index.
         """
         # Create a shared memory object.
-        writer = WriteShMem("test")
+        writer = ShMem("test")
 
         # Read the index.
         index = writer.read_index()
@@ -505,3 +506,51 @@ class TestWriteShMem:
         writer.sm_index.unlink()
 
         assert index == {"test", "a", "b", "c"}
+
+    def test_append_index(self):
+        """
+        Test that :meth:`.ShMem.append_index` correctly appends to the shared memory object index. Checks that the
+        namespace has been updated.
+        """
+        # Create a shared memory object.
+        writer = ShMem("test")
+
+        # Append some indexes.
+        writer.append_index("hello")
+        writer.append_index("world")
+
+        # Read the updated index.
+        index = writer.read_index()
+
+        # Clean up the shared memory region.
+        writer.sm_index.close()
+        writer.sm_index.unlink()
+
+        assert index == {"test", "hello", "world"}
+
+    def test_write(self):
+        """
+        Test that :meth:`.ShMem.write` correctly appends to the shared memory object index. Checks that the namespace
+        has been updated, and the objects allocated to shared memory.
+        """
+        # Create a shared memory object.
+        writer = ShMem("test")
+
+        # Write some data.
+        writer.write("test_names", ["Kolmogorov", "Markov", "Gauss"])
+
+        # Read the updated index.
+        index = writer.read_index()
+
+        # Read the data.
+        sm_handle = shared_memory.SharedMemory("test_names")
+        sm_data = pickle.loads(bytes(sm_handle.buf))
+
+        # Clean up the shared memory region.
+        writer.sm_index.close()
+        writer.sm_index.unlink()
+        sm_handle.close()
+        sm_handle.unlink()
+
+        assert index == {"test", "test_names"}
+        assert sm_data == ['Kolmogorov', 'Markov', 'Gauss']
