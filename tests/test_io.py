@@ -6,9 +6,12 @@ handling tests.
 Each class in :mod:`algos.io` is mapped to an equivalently named test class for the purpose of these tests.
 """
 import io
+import sys
 import re
+import pickle
 import pytest
-from algos.io import ReadStdIn, convert_anystr
+from multiprocessing import shared_memory
+from algos.io import ReadStdIn, ReadShMem, convert_anystr
 
 
 def test_convert_anystr():
@@ -407,3 +410,55 @@ class TestReadStdIn:
 
         # Check that the value is the same as the monkeypatched value.
         assert reader.string() == expected
+
+
+class TestReadShMem:
+    """
+    Test cases for :class:`.ReadShMem`.
+    """
+    def test_init(self):
+        """
+        Test the init function to see if
+
+        +--------------------------------------+----------------------------------------------------------------------+
+        | description                          | reason                                                               |
+        +======================================+======================================================================+
+        | no shared memory index               | Function should create one.                                          |
+        +--------------------------------------+----------------------------------------------------------------------+
+        | shared memory index                  | Function should attach to the index.                                 |
+        +--------------------------------------+----------------------------------------------------------------------+
+        """
+        # Create a shared memory object. At this stage, there should be none named algoscli.
+        reader = ReadShMem()
+
+        # Check that we have the initial data in the buffer.
+        assert pickle.loads(bytes(reader.sm_index.buf)) == ["algoscli"]
+
+        # Clean up the shared memory index.
+        reader.sm_index.close()
+        reader.sm_index.unlink()
+
+        # Delete the reader object.
+        del reader
+
+        # Create the index again. We pickle in order to write to binary.
+        sm_index_data: bytes = pickle.dumps(["already exists"])
+
+        # Get the length of the bytes object so that we may perform a copy.
+        n_sm_index: int = len(sm_index_data)
+
+        # Create the shared memory region with the same size as the pickled index.
+        sm_index = shared_memory.SharedMemory(create=True, size=sys.getsizeof(sm_index_data), name="algoscli")
+
+        # Perform a copy of the data to the buffer.
+        sm_index.buf[:n_sm_index] = sm_index_data[:n_sm_index]
+
+        # Create a shared memory object. At this stage, there should be the object created above named algoscli.
+        reader = ReadShMem()
+
+        # Check that we have the initial data in the buffer.
+        assert pickle.loads(bytes(reader.sm_index.buf)) == ["already exists"]
+
+        # Clean up the shared memory index.
+        reader.sm_index.close()
+        reader.sm_index.unlink()

@@ -11,7 +11,9 @@ supported thus far are
 """
 import sys
 import logging
+import pickle
 from typing import TypeVar, Any, Union
+from multiprocessing import shared_memory
 
 
 # Set up the logger for the module
@@ -246,3 +248,39 @@ class ReadStdIn:
         a: list[str] = "".join(sys.stdin.readlines()).split("\n")
 
         return a
+
+
+class ReadShMem:
+    """
+    A class that reads from ``stdin``, formats the input and writes the output to shared memory. This output can then
+    be accessed by other processes. This is useful when chaining command line programs together, in order to alleviate
+    the need to do textual processing for each input/output from each program in the chained command line.
+
+    :ivar sm_index: A region of shared memory that allows us to keep track of our allocated objects.
+    """
+    def __init__(self):
+        """
+        Initializes the shared memory reader. Checks if the shared memory index for the CLI package exists and
+        if it does not, creates an empty index to keep track of all allocated objects. The shared memory index,
+        named ``algoscli``, is present to ensure allocated objects have been cleaned up.
+        """
+        # Declare the type of the shared memory index.
+        self.sm_index: shared_memory.SharedMemory
+
+        # If the index already exists
+        try:
+            # Attach to the shared memory object.
+            self.sm_index = shared_memory.SharedMemory("algoscli")
+        # Otherwise, the shared memory index has not been allocated
+        except FileNotFoundError:
+            # Create the index. We pickle in order to write to binary.
+            sm_index: bytes = pickle.dumps(["algoscli"])
+
+            # Get the length of the bytes object so that we may perform a copy.
+            n_sm_index: int = len(sm_index)
+
+            # Create the shared memory region with the same size as the pickled index.
+            self.sm_index = shared_memory.SharedMemory(create=True, size=sys.getsizeof(sm_index), name="algoscli")
+
+            # Perform a copy of the data to the buffer.
+            self.sm_index.buf[:n_sm_index] = sm_index[:n_sm_index]
