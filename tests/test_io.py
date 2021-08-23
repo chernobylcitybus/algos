@@ -11,6 +11,7 @@ import re
 import pickle
 import pytest
 from multiprocessing import shared_memory
+from concurrent import futures
 from algos.io import StdIn, ShMem, convert_anystr
 
 
@@ -528,7 +529,7 @@ class TestShMem:
 
         assert index == {"test", "hello", "world"}
 
-    def test_write(self):
+    def test_write__expected(self):
         """
         Test that :meth:`.ShMem.write` correctly appends to the shared memory object index. Checks that the namespace
         has been updated, and the objects allocated to shared memory.
@@ -554,3 +555,46 @@ class TestShMem:
 
         assert index == {"test", "test_names"}
         assert sm_data == ['Kolmogorov', 'Markov', 'Gauss']
+
+    def test_write__unexpected(self):
+        """
+        Test that the :meth:`.ShMem.write` raises an exception in the following cases
+
+        +--------------------------------------+----------------------------------------------------------------------+
+        | description                          | reason                                                               |
+        +======================================+======================================================================+
+        | object cannot be pickled             | See if :class:`TypeError` is raised as this data can't be shared.    |
+        +--------------------------------------+----------------------------------------------------------------------+
+        | shared memory already allocated      | See if :class:`FileExistsError` is raised, indicating the shared     |
+        |                                      | memory handle has already been used.                                 |
+        +--------------------------------------+----------------------------------------------------------------------+
+        """
+        # Create a shared memory object.
+        writer = ShMem("test")
+
+        # Try to pickle something that cannot be pickled.
+        with pytest.raises(TypeError) as excinfo:
+            writer.write("test_data", futures.Future())
+
+        # Check that we have raised the correct error.
+        assert excinfo.match("Input object cannot be pickled")
+
+        # Try allocating something to a name that has already been allocated.
+        writer.write("test_data", "Hello")
+        with pytest.raises(FileExistsError) as excinfo:
+            writer.write("test_data", "World")
+
+        # Check that we raised the correct error.
+        assert excinfo.match("The shared memory handle has already been used: test_data")
+
+        # Read the data.
+        sm_handle = shared_memory.SharedMemory("test_data")
+
+        # Clean up the shared memory region.
+        writer.sm_index.close()
+        writer.sm_index.unlink()
+        sm_handle.close()
+        sm_handle.unlink()
+
+
+

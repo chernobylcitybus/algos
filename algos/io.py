@@ -343,29 +343,40 @@ class ShMem:
         # Write the updated index.
         self.write_index(old_index)
 
-    def write(self, index: str, obj: Any) -> bool:
+    def write(self, index: str, obj: Any):
         """
         Serializes object ``obj`` by pickling and writes to shared memory object with handle ``index``.
 
         :param str index: The string handle for the shared memory object.
         :param Any obj: The object to write to shared memory. Can be any object as long as it is serializable with
                         :mod:`pickle`
-        :rtype: bool
-        :return: True if the write was successful and False if not.
         """
-        # Get binary representation of pickled data.
-        obj_pickle: bytes = pickle.dumps(obj)
+        # We try to pickle the object
+        try:
+            # Get binary representation of pickled data.
+            obj_pickle: bytes = pickle.dumps(obj)
+        # Otherwise the object can't be pickled
+        except TypeError:
+            # Raise a TypeError indicating that we were unable to pickle.
+            raise TypeError("Input object cannot be pickled")
 
         # Get the length of the bytes object so that we may perform a copy.
         n_sm_obj: int = len(obj_pickle)
 
-        # Create the shared memory region with the same size as the pickled object.
-        sm_object = shared_memory.SharedMemory(create=True, size=sys.getsizeof(obj_pickle), name=index)
+        # We try to allocate shared memory of the correct size to the desired string handle.
+        # If we succeed
+        try:
+            # Create the shared memory region with the same size as the pickled object.
+            sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(
+                create=True, size=sys.getsizeof(obj_pickle), name=index
+            )
+        # The shared memory handle already exists
+        except FileExistsError:
+            # Raise an exception with the already allocated index.
+            raise FileExistsError("The shared memory handle has already been used: " + index)
 
         # Perform a copy of the data to the buffer.
         sm_object.buf[:n_sm_obj] = obj_pickle[:n_sm_obj]
 
         # Append the new index to the old index.
         self.append_index(index)
-
-        return True
