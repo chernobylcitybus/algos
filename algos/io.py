@@ -256,8 +256,8 @@ class WriteShMem:
     chaining command line programs together, in order to alleviate the need to do textual processing for each
     input/output from each program in the chained command line.
 
-    :ivar shm_namespace
-    :ivar sm_index: A region of shared memory that allows us to keep track of our allocated objects.
+    :ivar str shm_namespace: The name of the object in shared memory where the handles of the allocated objects reside.
+    :ivar .SharedMemory sm_index: A region of shared memory that allows us to keep track of our allocated objects.
     """
     def __init__(self, shm_namespace: str):
         """
@@ -279,7 +279,7 @@ class WriteShMem:
         # Otherwise, the shared memory index has not been allocated
         except FileNotFoundError:
             # Create the index. We pickle in order to write to binary.
-            sm_index: bytes = pickle.dumps([shm_namespace])
+            sm_index: bytes = pickle.dumps({shm_namespace})
 
             # Get the length of the bytes object so that we may perform a copy.
             n_sm_index: int = len(sm_index)
@@ -289,3 +289,37 @@ class WriteShMem:
 
             # Perform a copy of the data to the buffer.
             self.sm_index.buf[:n_sm_index] = sm_index[:n_sm_index]
+
+    def read_index(self) -> set[str]:
+        """
+        Reads the current index of the shared memory namespace. This should contain handles to all shared memory
+        objects within the namespace.
+
+        :rtype: set[str]
+        :return: Shared Memory handles as strings.
+        """
+        return pickle.loads(bytes(self.sm_index.buf))
+
+    def write_index(self, index: set[str]) -> None:
+        """
+        Writes an index, which should represent the list of shared memory object handles, to the shared memory
+        namespace. Since the previously allocated space is not mutable, we have to deallocate the previous object and
+        then reallocate the :attr:`.WriteShMem.sm_index` instance variable.
+
+        :param set[str] index: A set of names which are handles to objects in shared memory.
+        """
+        # Delete the previous index.
+        self.sm_index.close()
+        self.sm_index.unlink()
+
+        # Write the index to binary representation.
+        sm_index: bytes = pickle.dumps(index)
+
+        # Get the length of the bytes object so that we may perform a copy.
+        n_sm_index: int = len(sm_index)
+
+        # Create the shared memory region with the same size as the pickled index.
+        self.sm_index = shared_memory.SharedMemory(create=True, size=sys.getsizeof(sm_index), name=self.shm_namespace)
+
+        # Perform a copy of the data to the buffer.
+        self.sm_index.buf[:n_sm_index] = sm_index[:n_sm_index]
