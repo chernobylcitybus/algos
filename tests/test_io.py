@@ -11,7 +11,7 @@ import re
 import pickle
 import pytest
 from multiprocessing import shared_memory
-from algos.io import ReadStdIn, ReadShMem, convert_anystr
+from algos.io import ReadStdIn, WriteShMem, convert_anystr
 
 
 def test_convert_anystr():
@@ -412,9 +412,9 @@ class TestReadStdIn:
         assert reader.string() == expected
 
 
-class TestReadShMem:
+class TestWriteShMem:
     """
-    Test cases for :class:`.ReadShMem`.
+    Test cases for :class:`.WriteShMem`.
     """
     def test_init(self):
         """
@@ -429,17 +429,17 @@ class TestReadShMem:
         +--------------------------------------+----------------------------------------------------------------------+
         """
         # Create a shared memory object. At this stage, there should be none named algoscli.
-        reader = ReadShMem()
+        writer = WriteShMem("algoscli")
 
         # Check that we have the initial data in the buffer.
-        assert pickle.loads(bytes(reader.sm_index.buf)) == ["algoscli"]
+        assert pickle.loads(bytes(writer.sm_index.buf)) == ["algoscli"]
 
         # Clean up the shared memory index.
-        reader.sm_index.close()
-        reader.sm_index.unlink()
+        writer.sm_index.close()
+        writer.sm_index.unlink()
 
-        # Delete the reader object.
-        del reader
+        # Delete the writer object.
+        del writer
 
         # Create the index again. We pickle in order to write to binary.
         sm_index_data: bytes = pickle.dumps(["already exists"])
@@ -454,11 +454,11 @@ class TestReadShMem:
         sm_index.buf[:n_sm_index] = sm_index_data[:n_sm_index]
 
         # Create a shared memory object. At this stage, there should be the object created above named algoscli.
-        reader = ReadShMem()
+        writer = WriteShMem("algoscli")
 
         # Check that we have the initial data in the buffer.
-        assert pickle.loads(bytes(reader.sm_index.buf)) == ["already exists"]
+        assert pickle.loads(bytes(writer.sm_index.buf)) == ["already exists"]
 
         # Clean up the shared memory index.
-        reader.sm_index.close()
-        reader.sm_index.unlink()
+        writer.sm_index.close()
+        writer.sm_index.unlink()

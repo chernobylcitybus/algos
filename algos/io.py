@@ -250,37 +250,42 @@ class ReadStdIn:
         return a
 
 
-class ReadShMem:
+class WriteShMem:
     """
-    A class that reads from ``stdin``, formats the input and writes the output to shared memory. This output can then
-    be accessed by other processes. This is useful when chaining command line programs together, in order to alleviate
-    the need to do textual processing for each input/output from each program in the chained command line.
+    A class that writes data to shared memory. This output can then be accessed by other processes. This is useful when
+    chaining command line programs together, in order to alleviate the need to do textual processing for each
+    input/output from each program in the chained command line.
 
+    :ivar shm_namespace
     :ivar sm_index: A region of shared memory that allows us to keep track of our allocated objects.
     """
-    def __init__(self):
+    def __init__(self, shm_namespace: str):
         """
-        Initializes the shared memory reader. Checks if the shared memory index for the CLI package exists and
+        Initializes the shared memory reader. Checks if the shared memory namespace specified exists and
         if it does not, creates an empty index to keep track of all allocated objects. The shared memory index,
-        named ``algoscli``, is present to ensure allocated objects have been cleaned up.
+        named ``shm_namespace``, is present to ensure allocated objects can be cleaned up at the end of
+        processing.
         """
+        # Store namespace name for later use.
+        self.shm_namespace: str = shm_namespace
+
         # Declare the type of the shared memory index.
         self.sm_index: shared_memory.SharedMemory
 
         # If the index already exists
         try:
             # Attach to the shared memory object.
-            self.sm_index = shared_memory.SharedMemory("algoscli")
+            self.sm_index = shared_memory.SharedMemory(shm_namespace)
         # Otherwise, the shared memory index has not been allocated
         except FileNotFoundError:
             # Create the index. We pickle in order to write to binary.
-            sm_index: bytes = pickle.dumps(["algoscli"])
+            sm_index: bytes = pickle.dumps([shm_namespace])
 
             # Get the length of the bytes object so that we may perform a copy.
             n_sm_index: int = len(sm_index)
 
             # Create the shared memory region with the same size as the pickled index.
-            self.sm_index = shared_memory.SharedMemory(create=True, size=sys.getsizeof(sm_index), name="algoscli")
+            self.sm_index = shared_memory.SharedMemory(create=True, size=sys.getsizeof(sm_index), name=shm_namespace)
 
             # Perform a copy of the data to the buffer.
             self.sm_index.buf[:n_sm_index] = sm_index[:n_sm_index]
