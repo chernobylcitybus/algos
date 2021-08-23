@@ -250,7 +250,7 @@ class ReadStdIn:
         return a
 
 
-class WriteShMem:
+class ShMem:
     """
     A class that writes data to shared memory. This output can then be accessed by other processes. This is useful when
     chaining command line programs together, in order to alleviate the need to do textual processing for each
@@ -304,7 +304,7 @@ class WriteShMem:
         """
         Writes an index, which should represent the list of shared memory object handles, to the shared memory
         namespace. Since the previously allocated space is not mutable, we have to deallocate the previous object and
-        then reallocate the :attr:`.WriteShMem.sm_index` instance variable.
+        then reallocate the :attr:`.ShMem.sm_index` instance variable.
 
         :param set[str] index: A set of names which are handles to objects in shared memory.
         """
@@ -323,3 +323,47 @@ class WriteShMem:
 
         # Perform a copy of the data to the buffer.
         self.sm_index.buf[:n_sm_index] = sm_index[:n_sm_index]
+
+    def append_index(self, index: str):
+        """
+        Appends a shared memory object handle onto the existing index. This does not actually append to the old
+        shared memory object, but rather deallocates the old one and allocates a new shared memory object for the
+        new index.
+
+        :param str index: The shared memory object handle to add.
+        """
+        # Get the old index.
+        old_index: set[str] = self.read_index()
+
+        # Add the new index to the old index.
+        old_index.add(index)
+
+        # Write the updated index.
+        self.write_index(old_index)
+
+    def write(self, index: str, obj: Any) -> bool:
+        """
+        Serializes object ``obj`` by pickling and writes to shared memory object with handle ``index``.
+
+        :param str index: The string handle for the shared memory object.
+        :param Any obj: The object to write to shared memory. Can be any object as long as it is serializable with
+                        :mod:`pickle`
+        :rtype: bool
+        :return: True if the write was successful and False if not.
+        """
+        # Get binary representation of pickled data.
+        obj_pickle: bytes = pickle.dumps(obj)
+
+        # Get the length of the bytes object so that we may perform a copy.
+        n_sm_obj: int = len(obj_pickle)
+
+        # Create the shared memory region with the same size as the pickled object.
+        sm_object = shared_memory.SharedMemory(create=True, size=sys.getsizeof(obj_pickle), name=index)
+
+        # Perform a copy of the data to the buffer.
+        sm_object.buf[:n_sm_obj] = obj_pickle[:n_sm_obj]
+
+        # Append the new index to the old index.
+        self.append_index(index)
+
+        return True
