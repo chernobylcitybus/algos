@@ -1,5 +1,5 @@
 # Coverage files
-**/**/*.coverage
+**/**/*.coverage*
 **/**/htmlcov
 
 # PyCharm idea file.
