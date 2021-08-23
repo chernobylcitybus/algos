@@ -432,7 +432,7 @@ class TestWriteShMem:
         writer = WriteShMem("algoscli")
 
         # Check that we have the initial data in the buffer.
-        assert pickle.loads(bytes(writer.sm_index.buf)) == ["algoscli"]
+        assert pickle.loads(bytes(writer.sm_index.buf)) == {"algoscli"}
 
         # Clean up the shared memory index.
         writer.sm_index.close()
@@ -442,7 +442,7 @@ class TestWriteShMem:
         del writer
 
         # Create the index again. We pickle in order to write to binary.
-        sm_index_data: bytes = pickle.dumps(["already exists"])
+        sm_index_data: bytes = pickle.dumps({"already exists"})
 
         # Get the length of the bytes object so that we may perform a copy.
         n_sm_index: int = len(sm_index_data)
@@ -457,8 +457,51 @@ class TestWriteShMem:
         writer = WriteShMem("algoscli")
 
         # Check that we have the initial data in the buffer.
-        assert pickle.loads(bytes(writer.sm_index.buf)) == ["already exists"]
+        assert pickle.loads(bytes(writer.sm_index.buf)) == {"already exists"}
 
         # Clean up the shared memory index.
         writer.sm_index.close()
         writer.sm_index.unlink()
+
+    def test_read_index(self):
+        """
+        Test that :meth:`.WriteShMem.read_index` returns the correct current index for all shared memory objects
+        allocated within the namespace.
+        """
+        # Create a shared memory object.
+        writer = WriteShMem("test")
+
+        # Read the index.
+        index = writer.read_index()
+
+        # Check that the index is as we expected.
+        assert index == {"test"}
+
+        # Clean up the shared memory region.
+        writer.sm_index.close()
+        writer.sm_index.unlink()
+
+    def test_write_index(self):
+        """
+        Test that :meth:`.WriteShMem.write_index` correctly updates the shared memory object index.
+        """
+        # Create a shared memory object.
+        writer = WriteShMem("test")
+
+        # Read the index.
+        index = writer.read_index()
+
+        # Update the namespace with the handles "a", "b" and "c".
+        [index.add(x) for x in {"a", "b", "c"}]
+
+        # Write the updated index.
+        writer.write_index(index)
+
+        # Read the updated index.
+        index = writer.read_index()
+
+        # Clean up the shared memory region.
+        writer.sm_index.close()
+        writer.sm_index.unlink()
+
+        assert index == {"test", "a", "b", "c"}
