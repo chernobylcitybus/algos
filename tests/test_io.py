@@ -1,5 +1,5 @@
 """
-The test module for :mod:`algos.io` . Consists of various data classes such as :class:`DataReadStdIn` that stores
+The test module for :mod:`algos.io` . Consists of various data classes such as :class:`DataStdIn` that stores
 expected inputs and outputs for the different input/output algorithms. The classes also provides data for exception
 handling tests.
 
@@ -11,7 +11,7 @@ import re
 import pickle
 import pytest
 from multiprocessing import shared_memory
-from algos.io import ReadStdIn, ShMem, convert_anystr
+from algos.io import StdIn, ShMem, convert_anystr
 
 
 def test_convert_anystr():
@@ -32,9 +32,9 @@ def test_convert_anystr():
     assert isinstance(convert_anystr(b"hello"), str)
 
 
-class DataReadStdIn:
+class DataStdIn:
     """
-    Holds the data for :class:`.ReadStdIn` .
+    Holds the data for :class:`.StdIn` .
     """
     integer__expected = [
         ("1", 1),
@@ -43,7 +43,7 @@ class DataReadStdIn:
         ("1000000000000000000000", 1000000000000000000000)
     ]
     """
-    Test cases for :meth:`.ReadStdIn.integer`, testing that it functions correctly for expected inputs.The test
+    Test cases for :meth:`.StdIn.integer`, testing that it functions correctly for expected inputs.The test
     cases are as follows
     
     +--------------------------------------+----------------------------------------------------------------------+
@@ -67,7 +67,7 @@ class DataReadStdIn:
         ("0.01", [ValueError, "invalid literal for int() with base 10: '0.01'"])
     ]
     """
-    Test cases for :meth:`.ReadStdIn.integer`, testing that it raises an error for unexpected inputs. The test cases
+    Test cases for :meth:`.StdIn.integer`, testing that it raises an error for unexpected inputs. The test cases
     are as follows
 
     +--------------------------------------+----------------------------------------------------------------------+
@@ -92,7 +92,7 @@ class DataReadStdIn:
         (("str", "apple banana carrot"), ["apple", "banana", "carrot"])
     ]
     """
-    Test cases for :meth:`.ReadStdIn.array`, testing that it functions correctly for expected inputs. The test cases
+    Test cases for :meth:`.StdIn.array`, testing that it functions correctly for expected inputs. The test cases
     are as follows
 
     +--------------------------------------+----------------------------------------------------------------------+
@@ -123,7 +123,7 @@ class DataReadStdIn:
         ((["int"], "1 2 3"), [TypeError, "array - Unsupported Input Type: - " + str(type(list()))])
     ]
     """
-    Test cases for :meth:`.ReadStdIn.array`, testing that it raises an error for unexpected inputs. The test cases
+    Test cases for :meth:`.StdIn.array`, testing that it raises an error for unexpected inputs. The test cases
     are as follows
 
     +--------------------------------------+----------------------------------------------------------------------+
@@ -163,7 +163,7 @@ class DataReadStdIn:
         ),
     ]
     """
-    Test cases for :meth:`.ReadStdIn.matrix`, testing that it functions correctly for expected inputs. The test cases
+    Test cases for :meth:`.StdIn.matrix`, testing that it functions correctly for expected inputs. The test cases
     are as follows
 
     +--------------------------------------+----------------------------------------------------------------------+
@@ -184,7 +184,7 @@ class DataReadStdIn:
         (([0], ""), [TypeError, "matrix - Invalid Input Type: " + str(type(list()))])
     ]
     """
-    Test cases for :meth:`.ReadStdIn.matrix`, testing that it raises an error for unexpected inputs. The test cases
+    Test cases for :meth:`.StdIn.matrix`, testing that it raises an error for unexpected inputs. The test cases
     are as follows
 
     +--------------------------------------+----------------------------------------------------------------------+
@@ -213,7 +213,7 @@ class DataReadStdIn:
         ("hello world\nhow are you?", ["hello world", "how are you?"])
     ]
     """
-    Test cases for :meth:`.ReadStdIn.string`, testing that it functions correctly for expected inputs. The test cases
+    Test cases for :meth:`.StdIn.string`, testing that it functions correctly for expected inputs. The test cases
     are as follows
 
     +--------------------------------------+----------------------------------------------------------------------+
@@ -231,19 +231,19 @@ class DataReadStdIn:
     """
 
 
-class TestReadStdIn:
+class TestStdIn:
     """
-    Test cases for :class:`.ReadStdIn`.
+    Test cases for :class:`.StdIn`.
     """
     @pytest.mark.parametrize(
         "test_input,expected",
-        DataReadStdIn.integer__expected,
-        ids=[repr(v) for v in DataReadStdIn.integer__expected]
+        DataStdIn.integer__expected,
+        ids=[repr(v) for v in DataStdIn.integer__expected]
     )
     def test_integer__expected(self, monkeypatch, test_input, expected):
         """
-        Test that the :meth:`.ReadStdIn.integer` method works properly for expected inputs. Test input can be found
-        in :attr:`DataReadStdIn.integer__expected` .
+        Test that the :meth:`.StdIn.integer` method works properly for expected inputs. Test input can be found
+        in :attr:`DataStdIn.integer__expected` .
 
         We monkeypatch ``stdin`` to run our test cases with the mock data.
         """
@@ -251,20 +251,20 @@ class TestReadStdIn:
         monkeypatch.setattr('sys.stdin', io.StringIO(test_input))
 
         # Create the reader instance.
-        reader = ReadStdIn()
+        reader = StdIn()
 
         # Check that the value is the same as the monkeypatched value.
         assert reader.integer() == expected
 
     @pytest.mark.parametrize(
         "test_input,error",
-        DataReadStdIn.integer__unexpected,
-        ids=[repr(v) for v in DataReadStdIn.integer__unexpected]
+        DataStdIn.integer__unexpected,
+        ids=[repr(v) for v in DataStdIn.integer__unexpected]
     )
     def test_integer__unexpected(self, monkeypatch, test_input, error):
         """
-        Test that the :meth:`.ReadStdIn.integer` raises exceptions for unexpected inputs. Test input can be found
-        in :attr:`DataReadStdIn.integer__unexpected` .
+        Test that the :meth:`.StdIn.integer` raises exceptions for unexpected inputs. Test input can be found
+        in :attr:`DataStdIn.integer__unexpected` .
 
         We monkeypatch ``stdin`` to run our test cases with the mock data. We check if the specified exception was
         raised and that the expected exception reason matches the raised exception.
@@ -273,7 +273,7 @@ class TestReadStdIn:
         monkeypatch.setattr('sys.stdin', io.StringIO(test_input))
 
         # Create the reader instance.
-        reader = ReadStdIn()
+        reader = StdIn()
 
         # Check that the exception is raised.
         with pytest.raises(error[0]) as excinfo:
@@ -284,13 +284,13 @@ class TestReadStdIn:
 
     @pytest.mark.parametrize(
         "test_input,expected",
-        DataReadStdIn.array__expected,
-        ids=[repr(v) for v in DataReadStdIn.array__expected]
+        DataStdIn.array__expected,
+        ids=[repr(v) for v in DataStdIn.array__expected]
     )
     def test_array__expected(self, monkeypatch, test_input, expected):
         """
-        Test that the :meth:`.ReadStdIn.array` method works properly for expected inputs. Test input can be found
-        in :attr:`DataReadStdIn.array__expected` .
+        Test that the :meth:`.StdIn.array` method works properly for expected inputs. Test input can be found
+        in :attr:`DataStdIn.array__expected` .
 
         We monkeypatch ``stdin`` to run our test cases with the mock data.
         """
@@ -302,20 +302,20 @@ class TestReadStdIn:
         monkeypatch.setattr('sys.stdin', io.StringIO(input_str))
 
         # Create the reader instance.
-        reader = ReadStdIn()
+        reader = StdIn()
 
         # Check that the value is the same as the monkeypatched value.
         assert reader.array(input_type) == expected
 
     @pytest.mark.parametrize(
         "test_input,error",
-        DataReadStdIn.array__unexpected,
-        ids=[repr(v) for v in DataReadStdIn.array__unexpected]
+        DataStdIn.array__unexpected,
+        ids=[repr(v) for v in DataStdIn.array__unexpected]
     )
     def test_array__unexpected(self, monkeypatch, test_input, error):
         """
-        Test that the :meth:`.ReadStdIn.array` raises exceptions for unexpected inputs. Test input can be found
-        in :attr:`DataReadStdIn.array__unexpected` .
+        Test that the :meth:`.StdIn.array` raises exceptions for unexpected inputs. Test input can be found
+        in :attr:`DataStdIn.array__unexpected` .
 
         We monkeypatch ``stdin`` to run our test cases with the mock data. We check if the specified exception was
         raised and that the expected exception reason matches the raised exception.
@@ -328,7 +328,7 @@ class TestReadStdIn:
         monkeypatch.setattr('sys.stdin', io.StringIO(input_str))
 
         # Create the reader instance.
-        reader = ReadStdIn()
+        reader = StdIn()
 
         # Check that the exception is raised.
         with pytest.raises(error[0]) as excinfo:
@@ -338,13 +338,13 @@ class TestReadStdIn:
 
     @pytest.mark.parametrize(
         "test_input,expected",
-        DataReadStdIn.matrix__expected,
-        ids=[repr(v) for v in DataReadStdIn.matrix__expected]
+        DataStdIn.matrix__expected,
+        ids=[repr(v) for v in DataStdIn.matrix__expected]
     )
     def test_matrix__expected(self, monkeypatch, test_input, expected):
         """
-        Test that the :meth:`.ReadStdIn.matrix` method works properly for expected inputs. Test input can be found
-        in :attr:`DataReadStdIn.matrix__expected` .
+        Test that the :meth:`.StdIn.matrix` method works properly for expected inputs. Test input can be found
+        in :attr:`DataStdIn.matrix__expected` .
 
         We monkeypatch ``stdin`` to run our test cases with the mock data.
         """
@@ -356,20 +356,20 @@ class TestReadStdIn:
         monkeypatch.setattr('sys.stdin', io.StringIO(input_str))
 
         # Create the reader instance.
-        reader = ReadStdIn()
+        reader = StdIn()
 
         # Check that the value is the same as the monkeypatched value.
         assert reader.matrix(n) == expected
 
     @pytest.mark.parametrize(
         "test_input,error",
-        DataReadStdIn.matrix__unexpected,
-        ids=[repr(v) for v in DataReadStdIn.matrix__unexpected]
+        DataStdIn.matrix__unexpected,
+        ids=[repr(v) for v in DataStdIn.matrix__unexpected]
     )
     def test_matrix__unexpected(self, monkeypatch, test_input, error):
         """
-        Test that the :meth:`.ReadStdIn.matrix` raises exceptions for unexpected inputs. Test input can be found
-        in :attr:`DataReadStdIn.matrix__unexpected` .
+        Test that the :meth:`.StdIn.matrix` raises exceptions for unexpected inputs. Test input can be found
+        in :attr:`DataStdIn.matrix__unexpected` .
 
         We monkeypatch ``stdin`` to run our test cases with the mock data. We check if the specified exception was
         raised and that the expected exception reason matches the raised exception.
@@ -382,7 +382,7 @@ class TestReadStdIn:
         monkeypatch.setattr('sys.stdin', io.StringIO(input_str))
 
         # Create the reader instance.
-        reader = ReadStdIn()
+        reader = StdIn()
 
         # Check that the exception is raised.
         with pytest.raises(error[0]) as excinfo:
@@ -392,13 +392,13 @@ class TestReadStdIn:
 
     @pytest.mark.parametrize(
         "test_input,expected",
-        DataReadStdIn.string__expected,
-        ids=[repr(v) for v in DataReadStdIn.string__expected]
+        DataStdIn.string__expected,
+        ids=[repr(v) for v in DataStdIn.string__expected]
     )
     def test_string__expected(self, monkeypatch, test_input, expected):
         """
-        Test that the :meth:`.ReadStdIn.string` method works properly for expected inputs. Test input can be found
-        in :attr:`DataReadStdIn.string__expected` .
+        Test that the :meth:`.StdIn.string` method works properly for expected inputs. Test input can be found
+        in :attr:`DataStdIn.string__expected` .
 
         We monkeypatch ``stdin`` to run our test cases with the mock data.
         """
@@ -406,7 +406,7 @@ class TestReadStdIn:
         monkeypatch.setattr('sys.stdin', io.StringIO(test_input))
 
         # Create the reader instance.
-        reader = ReadStdIn()
+        reader = StdIn()
 
         # Check that the value is the same as the monkeypatched value.
         assert reader.string() == expected

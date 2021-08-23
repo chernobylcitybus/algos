@@ -10,7 +10,7 @@ corresponds to the ``algos-text`` command line interface. The list of methods an
 
 """
 from algos.text import anagrams
-from algos.io import ReadStdIn
+from algos.io import StdIn
 from algoscli.common import Function
 
 
@@ -46,8 +46,8 @@ class TextCLI:
            [['elbow', 'below', 'bowel']]
 
         """
-        # Generate an instance of ReadStdIn.
-        reader: ReadStdIn = ReadStdIn()
+        # Generate an instance of StdIn.
+        reader: StdIn = StdIn()
 
         # Read stdin and create set of words for anagrams.
         words: list[str] = reader.string()

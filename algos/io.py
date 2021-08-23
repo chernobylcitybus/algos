@@ -5,7 +5,9 @@ supported thus far are
 +-------------------------------------+----------------------------------------------------------------------------+
 | class                               | purpose                                                                    |
 +=====================================+============================================================================+
-| :class:`.ReadStdIn`                 | Reads input from ``stdin`` in a variety of formats.                        |
+| :class:`.StdIn`                     | Reads input from ``stdin`` in a variety of formats.                        |
++-------------------------------------+----------------------------------------------------------------------------+
+| :class:`.ShMem`                     | Reads and writes to shared memory.                                         |
 +-------------------------------------+----------------------------------------------------------------------------+
 
 """
@@ -47,7 +49,7 @@ def convert_anystr(any_str: Union[str, bytes]) -> str:
     return return_value
 
 
-class ReadStdIn:
+class StdIn:
     """
     A class that has multiple methods for reading ``stdin`` inputs. This primarily makes it easier to handle programs
     that read from ``stdin`` such as :any:`cli` .
@@ -59,7 +61,7 @@ class ReadStdIn:
         Initialize the logger for the class.
         """
         # Get the logger
-        self.logger: logging.Logger = logging.getLogger("algos.io.ReadStdIn")
+        self.logger: logging.Logger = logging.getLogger("algos.io.StdIn")
 
     def integer(self) -> int:
         """
@@ -68,8 +70,8 @@ class ReadStdIn:
 
         With an interactive Python session, you can run
 
-        >>> from algos.io import ReadStdIn
-        >>> reader = ReadStdIn()
+        >>> from algos.io import StdIn
+        >>> reader = StdIn()
         >>> reader.integer()
         7
         7
@@ -105,8 +107,8 @@ class ReadStdIn:
 
         With an interactive Python session, you can run
 
-        >>> from algos.io import ReadStdIn
-        >>> reader = ReadStdIn()
+        >>> from algos.io import StdIn
+        >>> reader = StdIn()
         >>> reader.array("int")
         1 2 3
         [1, 2, 3]
@@ -173,8 +175,8 @@ class ReadStdIn:
 
         With an interactive Python session, you can run
 
-        >>> from algos.io import ReadStdIn
-        >>> reader = ReadStdIn()
+        >>> from algos.io import StdIn
+        >>> reader = StdIn()
         >>> reader.matrix(3)
         1 2 3
         4 5 6
@@ -236,8 +238,8 @@ class ReadStdIn:
 
         In an interactive, Python session, you can use ^D (CTRL+D) to yield an EOF marker.
 
-        >>> from algos.io import ReadStdIn
-        >>> reader = ReadStdIn()
+        >>> from algos.io import StdIn
+        >>> reader = StdIn()
         >>> reader.string()
         hello world
         how are you
