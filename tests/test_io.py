@@ -430,17 +430,17 @@ class TestShMem:
         +--------------------------------------+----------------------------------------------------------------------+
         """
         # Create a shared memory object. At this stage, there should be none named algoscli.
-        writer = ShMem("algoscli")
+        shm_manager = ShMem("algoscli")
 
         # Check that we have the initial data in the buffer.
-        assert pickle.loads(bytes(writer.sm_index.buf)) == {"algoscli"}
+        assert pickle.loads(bytes(shm_manager.sm_index.buf)) == {"algoscli"}
 
         # Clean up the shared memory index.
-        writer.sm_index.close()
-        writer.sm_index.unlink()
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
 
-        # Delete the writer object.
-        del writer
+        # Delete the shm_manager object.
+        del shm_manager
 
         # Create the index again. We pickle in order to write to binary.
         sm_index_data: bytes = pickle.dumps({"already exists"})
@@ -455,14 +455,14 @@ class TestShMem:
         sm_index.buf[:n_sm_index] = sm_index_data[:n_sm_index]
 
         # Create a shared memory object. At this stage, there should be the object created above named algoscli.
-        writer = ShMem("algoscli")
+        shm_manager = ShMem("algoscli")
 
         # Check that we have the initial data in the buffer.
-        assert pickle.loads(bytes(writer.sm_index.buf)) == {"already exists"}
+        assert pickle.loads(bytes(shm_manager.sm_index.buf)) == {"already exists"}
 
         # Clean up the shared memory index.
-        writer.sm_index.close()
-        writer.sm_index.unlink()
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
 
     def test_read_index(self):
         """
@@ -470,17 +470,17 @@ class TestShMem:
         allocated within the namespace.
         """
         # Create a shared memory object.
-        writer = ShMem("test")
+        shm_manager = ShMem("test")
 
         # Read the index.
-        index = writer.read_index()
+        index = shm_manager.read_index()
 
         # Check that the index is as we expected.
         assert index == {"test"}
 
         # Clean up the shared memory region.
-        writer.sm_index.close()
-        writer.sm_index.unlink()
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
 
     def test_write_index(self):
         """
@@ -488,23 +488,23 @@ class TestShMem:
         memory buffer contains the updated index.
         """
         # Create a shared memory object.
-        writer = ShMem("test")
+        shm_manager = ShMem("test")
 
         # Read the index.
-        index = writer.read_index()
+        index = shm_manager.read_index()
 
         # Update the namespace with the handles "a", "b" and "c".
         [index.add(x) for x in {"a", "b", "c"}]
 
         # Write the updated index.
-        writer.write_index(index)
+        shm_manager.write_index(index)
 
         # Read the updated index.
-        index = writer.read_index()
+        index = shm_manager.read_index()
 
         # Clean up the shared memory region.
-        writer.sm_index.close()
-        writer.sm_index.unlink()
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
 
         assert index == {"test", "a", "b", "c"}
 
@@ -514,18 +514,18 @@ class TestShMem:
         namespace has been updated.
         """
         # Create a shared memory object.
-        writer = ShMem("test")
+        shm_manager = ShMem("test")
 
         # Append some indexes.
-        writer.append_index("hello")
-        writer.append_index("world")
+        shm_manager.append_index("hello")
+        shm_manager.append_index("world")
 
         # Read the updated index.
-        index = writer.read_index()
+        index = shm_manager.read_index()
 
         # Clean up the shared memory region.
-        writer.sm_index.close()
-        writer.sm_index.unlink()
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
 
         assert index == {"test", "hello", "world"}
 
@@ -535,21 +535,21 @@ class TestShMem:
         has been updated, and the objects allocated to shared memory.
         """
         # Create a shared memory object.
-        writer = ShMem("test")
+        shm_manager = ShMem("test")
 
         # Write some data.
-        writer.write("test_names", ["Kolmogorov", "Markov", "Gauss"])
+        shm_manager.write("test_names", ["Kolmogorov", "Markov", "Gauss"])
 
         # Read the updated index.
-        index = writer.read_index()
+        index = shm_manager.read_index()
 
         # Read the data.
         sm_handle = shared_memory.SharedMemory("test_names")
         sm_data = pickle.loads(bytes(sm_handle.buf))
 
         # Clean up the shared memory region.
-        writer.sm_index.close()
-        writer.sm_index.unlink()
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
         sm_handle.close()
         sm_handle.unlink()
 
@@ -570,19 +570,19 @@ class TestShMem:
         +--------------------------------------+----------------------------------------------------------------------+
         """
         # Create a shared memory object.
-        writer = ShMem("test")
+        shm_manager = ShMem("test")
 
         # Try to pickle something that cannot be pickled.
         with pytest.raises(TypeError) as excinfo:
-            writer.write("test_data", futures.Future())
+            shm_manager.write("test_data", futures.Future())
 
         # Check that we have raised the correct error.
         assert excinfo.match("Input object cannot be pickled")
 
         # Try allocating something to a name that has already been allocated.
-        writer.write("test_data", "Hello")
+        shm_manager.write("test_data", "Hello")
         with pytest.raises(FileExistsError) as excinfo:
-            writer.write("test_data", "World")
+            shm_manager.write("test_data", "World")
 
         # Check that we raised the correct error.
         assert excinfo.match("The shared memory handle has already been used: test_data")
@@ -591,10 +591,76 @@ class TestShMem:
         sm_handle = shared_memory.SharedMemory("test_data")
 
         # Clean up the shared memory region.
-        writer.sm_index.close()
-        writer.sm_index.unlink()
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
         sm_handle.close()
         sm_handle.unlink()
 
+    def test_read__expected(self):
+        """
+        Test that the :meth:`.ShMem.read` functions as expected for expected inputs.
+        """
+        # Create a shared memory object.
+        shm_manager = ShMem("test")
 
+        # Create some data.
+        a = ["Kolmogorov", "Markov", "Gauss"]
+        b = 42
+        c = {"hello": set("world")}
 
+        # Write some data.
+        shm_manager.write("a", a)
+        shm_manager.write("b", b)
+        shm_manager.write("c", c)
+
+        # Try reading the data from shared memory.
+        results = [shm_manager.read(x) for x in ["a", "b", "c"]]
+
+        # Clean up the allocated objects.
+        for i in ["a", "b", "c"]:
+            sm_handle = shared_memory.SharedMemory(i)
+            sm_handle.close()
+            sm_handle.unlink()
+
+        # Clean up the shared memory region.
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
+
+        # Check that the results are the same as the input data.
+        assert results == [a, b, c]
+
+    def test_read__unexpected(self):
+        """
+        Test that the :meth:`.ShMem.read` raises an exception in the following cases
+
+        +--------------------------------------+----------------------------------------------------------------------+
+        | description                          | reason                                                               |
+        +======================================+======================================================================+
+        | handle not a string                  | See if we raise :class:`TypeError` if handle is given as anything    |
+        |                                      | but a string.                                                        |
+        +--------------------------------------+----------------------------------------------------------------------+
+        | handle not allocated                 | See if we raise :class:`ValueError` if handle does not exit.         |
+        +--------------------------------------+----------------------------------------------------------------------+
+        """
+        # Create a shared memory object.
+        shm_manager = ShMem("test")
+
+        # Try to raise a TypeError by supplying a non-string handle.
+        with pytest.raises(TypeError) as excinfo:
+            shm_manager.read(1)
+
+        # Check that we raised the correct exception message.
+        assert excinfo.match("Handle is not a valid string")
+
+        # Try to raise a ValueError by supplying a handle that does not exist.
+        with pytest.raises(ValueError) as excinfo:
+            shm_manager.read("does_not_exist")
+
+        # See if we get the right exception.
+        assert excinfo.match(
+            "Handle " + "does_not_exist" + " has not been allocated within namespace " + shm_manager.shm_namespace
+        )
+
+        # Clean up the shared memory region.
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
