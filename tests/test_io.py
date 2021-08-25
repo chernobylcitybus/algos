@@ -664,3 +664,74 @@ class TestShMem:
         # Clean up the shared memory region.
         shm_manager.sm_index.close()
         shm_manager.sm_index.unlink()
+
+    def test_delete__expected(self):
+        """
+        Test that the :meth:`.ShMem.delete` functions as expected for expected inputs.
+        """
+        # Create a shared memory object.
+        shm_manager = ShMem("test")
+
+        # Create some data.
+        a = ["Kolmogorov", "Markov", "Gauss"]
+
+        # Write the object to shared memory.
+        shm_manager.write("a", a)
+
+        # Check if the object exists and is equal to its expected value.
+        assert shm_manager.read("a") == a
+
+        # Delete the shared memory object and handle
+        shm_manager.delete("a")
+
+        # Check that the object has been removed from shared memory, remembering that our object are namespaced.
+        # This should raise a FileNotFoundError.
+        with pytest.raises(FileNotFoundError) as excinfo:
+            sm_object = shared_memory.SharedMemory("test_a")
+
+        # Check that we got the correct exception string.
+        assert excinfo.match("No such file or directory: '/test_a'")
+
+        # Check that the handle has been removed from the index
+        index = shm_manager.read_index()
+        assert "a" not in index
+
+        # Clean up the shared memory region.
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
+
+    def test_delete__unexpected(self):
+        """
+        Test that the :meth:`.ShMem.delete` raises an exception in the following cases
+
+        +--------------------------------------+----------------------------------------------------------------------+
+        | description                          | reason                                                               |
+        +======================================+======================================================================+
+        | handle not a string                  | See if we raise :class:`TypeError` if handle is given as anything    |
+        |                                      | but a string.                                                        |
+        +--------------------------------------+----------------------------------------------------------------------+
+        | handle not allocated                 | See if we raise :class:`ValueError` if handle does not exit.         |
+        +--------------------------------------+----------------------------------------------------------------------+
+        """
+        # Create a shared memory object.
+        shm_manager = ShMem("test")
+
+        # Try to raise a TypeError by supplying a non-string handle.
+        with pytest.raises(TypeError) as excinfo:
+            shm_manager.delete(1)
+
+        # Check that we raised the correct exception message.
+        assert excinfo.match("Handle is not a valid string")
+
+        # Try to raise a ValueError by supplying a handle that does not exist.
+        with pytest.raises(ValueError) as excinfo:
+            shm_manager.delete("does_not_exist")
+
+        # See if we get the right exception.
+        assert excinfo.match(
+            "Handle " + "does_not_exist" + " has not been allocated within namespace " + shm_manager.shm_namespace
+        )
+
+        # Clean up the shared memory region.
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
