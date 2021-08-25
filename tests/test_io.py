@@ -544,7 +544,7 @@ class TestShMem:
         index = shm_manager.read_index()
 
         # Read the data.
-        sm_handle = shared_memory.SharedMemory("test_names")
+        sm_handle = shared_memory.SharedMemory("test_test_names")
         sm_data = pickle.loads(bytes(sm_handle.buf))
 
         # Clean up the shared memory region.
@@ -588,7 +588,7 @@ class TestShMem:
         assert excinfo.match("The shared memory handle has already been used: test_data")
 
         # Read the data.
-        sm_handle = shared_memory.SharedMemory("test_data")
+        sm_handle = shared_memory.SharedMemory("test_test_data")
 
         # Clean up the shared memory region.
         shm_manager.sm_index.close()
@@ -618,7 +618,7 @@ class TestShMem:
 
         # Clean up the allocated objects.
         for i in ["a", "b", "c"]:
-            sm_handle = shared_memory.SharedMemory(i)
+            sm_handle = shared_memory.SharedMemory("test_" + i)
             sm_handle.close()
             sm_handle.unlink()
 

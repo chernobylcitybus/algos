@@ -370,7 +370,7 @@ class ShMem:
         try:
             # Create the shared memory region with the same size as the pickled object.
             sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(
-                create=True, size=sys.getsizeof(obj_pickle), name=index
+                create=True, size=sys.getsizeof(obj_pickle), name=self.shm_namespace + "_" + index
             )
         # The shared memory handle already exists
         except FileExistsError:
@@ -404,7 +404,7 @@ class ShMem:
             raise ValueError("Handle " + handle + " has not been allocated within namespace " + self.shm_namespace)
 
         # Get a memoryview of the object.
-        sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(handle)
+        sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(self.shm_namespace + "_" + handle)
 
         # Unpickle the data
         data: Any = pickle.loads(bytes(sm_object.buf))
