@@ -447,3 +447,30 @@ class ShMem:
 
         # Write the updated index.
         self.write_index(index)
+
+    def update(self, handle: str, obj: Any) -> None:
+        """
+        Updates an item in shared memory with the given handle. This effectively deletes the old shared memory object,
+        and writes the new shared memory object, using the same handle.
+
+        :raises TypeError: If handle is not a string.
+        :raises ValueError: If the handle is not located in the index.
+        :param str handle: An existing string handle to the shared memory object.
+        :param Any obj: The object to point to with the new handle, to be written to shared memory.
+        """
+        # Check that the handle was given as a string.
+        if not isinstance(handle, str):
+            raise TypeError("Handle is not a valid string")
+
+        # Get the current index.
+        index: set[str] = self.read_index()
+
+        # Check if the handle has been allocated and raise if it wasn't.
+        if handle not in index:
+            raise ValueError("Handle " + handle + " has not been allocated within namespace " + self.shm_namespace)
+
+        # Delete the object pointed to by handle in shared memory, and remove from namespace.
+        self.delete(handle)
+
+        # Write the new object to shared memory and update the namespace with the handle.
+        self.write(handle, obj)
