@@ -474,3 +474,23 @@ class ShMem:
 
         # Write the new object to shared memory and update the namespace with the handle.
         self.write(handle, obj)
+
+    def erase(self):
+        """
+        Deallocates all shared memory objects and the index for this shared memory manager's
+        :attr:`ShMem.shm_namespace`.
+        """
+        # Get the set of all allocated objects' handles.
+        index: set[str] = self.read_index()
+
+        # Remove the name of the namespace from the index.
+        index.remove(self.shm_namespace)
+
+        # Iterate over all the handles, deleting the objects as we go along.
+        handle: str
+        for handle in index:
+            self.delete(handle)
+
+        # Remove the index.
+        self.sm_index.close()
+        self.sm_index.unlink()
