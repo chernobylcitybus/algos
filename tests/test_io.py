@@ -799,3 +799,35 @@ class TestShMem:
         # Clean up the shared memory region.
         shm_manager.sm_index.close()
         shm_manager.sm_index.unlink()
+
+    def test_erase(self):
+        """
+        Tests that :meth:`.ShMem.erase` deallocates all shared memory objects handled by the :class:`.ShMem` instance.
+        """
+        # Create a shared memory object.
+        shm_manager = ShMem("test")
+
+        # Create some data.
+        a = ["Kolmogorov", "Markov", "Gauss"]
+
+        # Write the object to shared memory.
+        shm_manager.write("a", a)
+
+        # Check if the object exists and is equal to its expected value.
+        assert shm_manager.read("a") == a
+
+        # Erase everything from shared memory.
+        shm_manager.erase()
+
+        # Check that the object has been removed from shared memory, remembering that our object are namespaced.
+        # This should raise a FileNotFoundError.
+        with pytest.raises(FileNotFoundError) as excinfo:
+            sm_object = shared_memory.SharedMemory("test_a")
+
+        # Check that we got the correct exception string.
+        assert excinfo.match("No such file or directory: '/test_a'")
+
+        # Check that the index has been erased also.
+        with pytest.raises(FileNotFoundError) as excinfo:
+            sm_object = shared_memory.SharedMemory("test")
+        assert excinfo.match("No such file or directory: '/test'")
