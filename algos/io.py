@@ -347,6 +347,8 @@ class ShMem:
         """
         Serializes object ``obj`` by pickling and writes to shared memory object with handle ``index``.
 
+        :raises TypeError: If the input object cannot be pickled.
+        :raises FileExistsError: If the handle has already been allocated.
         :param str index: The string handle for the shared memory object.
         :param Any obj: The object to write to shared memory. Can be any object as long as it is serializable with
                         :mod:`pickle`
@@ -380,3 +382,35 @@ class ShMem:
 
         # Append the new index to the old index.
         self.append_index(index)
+
+    def read(self, handle: str) -> Any:
+        """
+        Reads an item from shared memory with the given handle.
+
+        :raises ValueError: If the handle is not located in the index.
+        :param str handle: The string name of the region of shared memory.
+        :rtype: Any
+        :return: An unpickled copy of the object referred to by ``handle``.
+        """
+        # Check that the handle was given as a string.
+        if not isinstance(handle, str):
+            raise TypeError("Handle is not a valid string")
+
+        # Get the current index.
+        index: set[str] = self.read_index()
+
+        # Check if the handle has been allocated and raise if it wasn't.
+        if handle not in index:
+            raise ValueError("Handle " + handle + " has not been allocated within namespace " + self.shm_namespace)
+
+        # Get a memoryview of the object.
+        sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(handle)
+
+        # Unpickle the data
+        data: Any = pickle.loads(bytes(sm_object.buf))
+
+        # Cleanup the handle to the shared memory object.
+        sm_object.close()
+
+        # Return the unpickled data.
+        return data
