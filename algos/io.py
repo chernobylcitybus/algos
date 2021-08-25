@@ -14,7 +14,7 @@ supported thus far are
 import sys
 import logging
 import pickle
-from typing import TypeVar, Any, Union
+from typing import TypeVar, Any, Union, Optional
 from multiprocessing import shared_memory
 
 
@@ -272,10 +272,10 @@ class ShMem:
         processing.
         """
         # Store namespace name for later use.
-        self.shm_namespace: str = shm_namespace
+        self.shm_namespace: Optional[str] = shm_namespace
 
         # Declare the type of the shared memory index.
-        self.sm_index: shared_memory.SharedMemory
+        self.sm_index: Optional[shared_memory.SharedMemory]
 
         # If the index already exists
         try:
@@ -308,6 +308,9 @@ class ShMem:
         :rtype: set[str]
         :return: Shared Memory handles as strings.
         """
+        # Check that the manager hasn't been deallocated already.
+        self.check_self()
+
         return pickle.loads(bytes(self.sm_index.buf))
 
     def write_index(self, index: set[str]) -> None:
@@ -318,6 +321,9 @@ class ShMem:
 
         :param set[str] index: A set of names which are handles to objects in shared memory.
         """
+        # Check that the manager hasn't been deallocated already.
+        self.check_self()
+
         # Delete the previous index.
         self.sm_index.close()
         self.sm_index.unlink()
@@ -342,6 +348,9 @@ class ShMem:
 
         :param str index: The shared memory object handle to add.
         """
+        # Check that the manager hasn't been deallocated already.
+        self.check_self()
+
         # Get the old index.
         old_index: set[str] = self.read_index()
 
@@ -368,6 +377,9 @@ class ShMem:
         :param Any obj: The object to write to shared memory. Can be any object as long as it is serializable with
                         :mod:`pickle`
         """
+        # Check that the manager hasn't been deallocated already.
+        self.check_self()
+
         # We try to pickle the object
         try:
             # Get binary representation of pickled data.
@@ -415,6 +427,9 @@ class ShMem:
         :rtype: Any
         :return: An unpickled copy of the object referred to by ``handle``.
         """
+        # Check that the manager hasn't been deallocated already.
+        self.check_self()
+
         # Check that the handle was given as a string.
         if not isinstance(handle, str):
             raise TypeError("Handle is not a valid string")
@@ -459,6 +474,9 @@ class ShMem:
         :raises ValueError: If the handle is not located in the index.
         :param str handle: The string name of the region of shared memory.
         """
+        # Check that the manager hasn't been deallocated already.
+        self.check_self()
+
         # Check that the handle was given as a string.
         if not isinstance(handle, str):
             raise TypeError("Handle is not a valid string")
@@ -502,6 +520,9 @@ class ShMem:
         :param str handle: An existing string handle to the shared memory object.
         :param Any obj: The object to point to with the new handle, to be written to shared memory.
         """
+        # Check that the manager hasn't been deallocated already.
+        self.check_self()
+
         # Check that the handle was given as a string.
         if not isinstance(handle, str):
             raise TypeError("Handle is not a valid string")
@@ -531,6 +552,9 @@ class ShMem:
         ['a', 'b', 'c']
         >>> sm_manager.erase()
         """
+        # Check that the manager hasn't been deallocated already.
+        self.check_self()
+
         # Get the set of all allocated objects' handles.
         index: set[str] = self.read_index()
 
@@ -545,3 +569,17 @@ class ShMem:
         # Remove the index.
         self.sm_index.close()
         self.sm_index.unlink()
+        del self.sm_index
+        del self.shm_namespace
+
+    def check_self(self):
+        """
+        See if this object has not already been deallocated. Used to guard function calls in case :meth:`ShMem.erase`
+        has already been called.
+
+        :raises RuntimeError: If the manager has already been erased.
+        """
+        try:
+            self.shm_namespace
+        except AttributeError:
+            raise RuntimeError("Manager has already been deallocated")

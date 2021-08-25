@@ -831,3 +831,29 @@ class TestShMem:
         with pytest.raises(FileNotFoundError) as excinfo:
             sm_object = shared_memory.SharedMemory("test")
         assert excinfo.match("No such file or directory: '/test'")
+
+    def test_check_self(self):
+        """
+        Tests that the function raises if the manager has already been erased.
+        """
+        # Create a shared memory object.
+        shm_manager = ShMem("test")
+
+        # Create some data.
+        a = ["Kolmogorov", "Markov", "Gauss"]
+
+        # Write the object to shared memory.
+        shm_manager.write("a", a)
+
+        # Check if the object exists and is equal to its expected value.
+        assert shm_manager.read("a") == a
+
+        # Erase everything from shared memory.
+        shm_manager.erase()
+
+        # Try to raise the exception.
+        with pytest.raises(RuntimeError) as excinfo:
+            shm_manager.read("a")
+
+        # Check that reason string matches.
+        assert excinfo.match("Manager has already been deallocated")
