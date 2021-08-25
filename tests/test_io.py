@@ -735,3 +735,67 @@ class TestShMem:
         # Clean up the shared memory region.
         shm_manager.sm_index.close()
         shm_manager.sm_index.unlink()
+
+    def test_update__expected(self):
+        """
+        Test that the :meth:`.ShMem.update` functions as expected for expected inputs.
+        """
+        # Create a shared memory object.
+        shm_manager = ShMem("test")
+
+        # Create some data.
+        a = ["Kolmogorov", "Markov", "Gauss"]
+
+        # Write the object to shared memory.
+        shm_manager.write("a", a)
+
+        # Check if the object exists and is equal to its expected value.
+        assert shm_manager.read("a") == a
+
+        # Create some new data and update the object in memory
+        b = ["Newton", "Ada", "Kepler"]
+        shm_manager.update("a", b)
+
+        # Check if the object exists and is equal to the updated value.
+        assert shm_manager.read("a") == b
+
+        # Clean up the shared memory region.
+        shm_manager.delete("a")
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
+
+    def test_update__unexpected(self):
+        """
+        Test that the :meth:`.ShMem.update` raises an exception in the following cases
+
+        +--------------------------------------+----------------------------------------------------------------------+
+        | description                          | reason                                                               |
+        +======================================+======================================================================+
+        | handle not a string                  | See if we raise :class:`TypeError` if handle is given as anything    |
+        |                                      | but a string.                                                        |
+        +--------------------------------------+----------------------------------------------------------------------+
+        | handle not allocated                 | See if we raise :class:`ValueError` if handle does not exit.         |
+        +--------------------------------------+----------------------------------------------------------------------+
+        """
+        # Create a shared memory object.
+        shm_manager = ShMem("test")
+
+        # Try to raise a TypeError by supplying a non-string handle.
+        with pytest.raises(TypeError) as excinfo:
+            shm_manager.update(1, [])
+
+        # Check that we raised the correct exception message.
+        assert excinfo.match("Handle is not a valid string")
+
+        # Try to raise a ValueError by supplying a handle that does not exist.
+        with pytest.raises(ValueError) as excinfo:
+            shm_manager.update("does_not_exist", [])
+
+        # See if we get the right exception.
+        assert excinfo.match(
+            "Handle " + "does_not_exist" + " has not been allocated within namespace " + shm_manager.shm_namespace
+        )
+
+        # Clean up the shared memory region.
+        shm_manager.sm_index.close()
+        shm_manager.sm_index.unlink()
