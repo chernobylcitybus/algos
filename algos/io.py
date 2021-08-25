@@ -254,9 +254,12 @@ class StdIn:
 
 class ShMem:
     """
-    A class that writes data to shared memory. This output can then be accessed by other processes. This is useful when
-    chaining command line programs together, in order to alleviate the need to do textual processing for each
-    input/output from each program in the chained command line.
+    A class that reads and writes data from and to shared memory. This output can then be accessed by other processes.
+    This is useful when chaining command line programs together, in order to alleviate the need to do textual processing
+    for each input/output from each program in the chained command line. This class acts as a sort of shared memory
+    manager that allows allocation of shared memory objects within a particular namespace (prefix) which is applied
+    to the object's shared memory string handle. Since all objects are tracked across processes, this allows us to
+    deallocate all objects and prevent memory leaks.
 
     :ivar str shm_namespace: The name of the object in shared memory where the handles of the allocated objects reside.
     :ivar .SharedMemory sm_index: A region of shared memory that allows us to keep track of our allocated objects.
@@ -295,7 +298,12 @@ class ShMem:
     def read_index(self) -> set[str]:
         """
         Reads the current index of the shared memory namespace. This should contain handles to all shared memory
-        objects within the namespace.
+        objects within the namespace. As an example, we can look at the index after the manager has been initialized.
+
+        >>> from algos.io import ShMem
+        >>> sm_manager = ShMem("test")
+        >>> sm_manager.read_index()
+        {'test'}
 
         :rtype: set[str]
         :return: Shared Memory handles as strings.
@@ -306,7 +314,7 @@ class ShMem:
         """
         Writes an index, which should represent the list of shared memory object handles, to the shared memory
         namespace. Since the previously allocated space is not mutable, we have to deallocate the previous object and
-        then reallocate the :attr:`.ShMem.sm_index` instance variable.
+        then reallocate the :attr:`.ShMem.sm_index` instance variable. This function should not be used directly.
 
         :param set[str] index: A set of names which are handles to objects in shared memory.
         """
@@ -330,7 +338,7 @@ class ShMem:
         """
         Appends a shared memory object handle onto the existing index. This does not actually append to the old
         shared memory object, but rather deallocates the old one and allocates a new shared memory object for the
-        new index.
+        new index. This function should not be used directly.
 
         :param str index: The shared memory object handle to add.
         """
@@ -345,7 +353,14 @@ class ShMem:
 
     def write(self, index: str, obj: Any):
         """
-        Serializes object ``obj`` by pickling and writes to shared memory object with handle ``index``.
+        Serializes object ``obj`` by pickling and writes to shared memory object with handle ``index``. We can
+        add an object to shared memory as follows:
+
+        >>> from algos.io import ShMem
+        >>> sm_manager = ShMem("test")
+        >>> sm_manager.write("new_data", [1, 2, 3])
+        >>> sm_manager.read("new_data")
+        [1, 2, 3]
 
         :raises TypeError: If the input object cannot be pickled.
         :raises FileExistsError: If the handle has already been allocated.
@@ -385,7 +400,14 @@ class ShMem:
 
     def read(self, handle: str) -> Any:
         """
-        Reads an item from shared memory with the given handle.
+        Reads an item from shared memory with the given handle. This example is identical to the one for the write
+        method
+
+        >>> from algos.io import ShMem
+        >>> sm_manager = ShMem("test")
+        >>> sm_manager.write("new_data", [1, 2, 3])
+        >>> sm_manager.read("new_data")
+        [1, 2, 3]
 
         :raises TypeError: If handle is not a string.
         :raises ValueError: If the handle is not located in the index.
@@ -418,7 +440,20 @@ class ShMem:
 
     def delete(self, handle: str) -> None:
         """
-        Deletes an item from shared memory with the given handle.
+        Deletes an item from shared memory with the given handle. As a continuation of the above example:
+
+        >>> from algos.io import ShMem
+        >>> sm_manager = ShMem("test")
+        >>> sm_manager.write("new_data", [1, 2, 3])
+        >>> sm_manager.read("new_data")
+        [1, 2, 3]
+        >>> sm_manager.delete("new_data")
+        >>> sm_manager.read("new_data")
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+          File "/home/user/Documents/algos/algos/io.py", line 408, in read
+            >>> sm_manager.write("new_data", [1, 2, 3])
+        ValueError: Handle new_data has not been allocated within namespace test
 
         :raises TypeError: If handle is not a string.
         :raises ValueError: If the handle is not located in the index.
@@ -451,7 +486,16 @@ class ShMem:
     def update(self, handle: str, obj: Any) -> None:
         """
         Updates an item in shared memory with the given handle. This effectively deletes the old shared memory object,
-        and writes the new shared memory object, using the same handle.
+        and writes the new shared memory object, using the same handle. To update an item, we can do the following
+
+        >>> from algos.io import ShMem
+        >>> sm_manager = ShMem("test")
+        >>> sm_manager.write("new_data", ["a", "b", "c"])
+        >>> sm_manager.read("new_data")
+        ['a', 'b', 'c']
+        >>> sm_manager.update("new_data", [1, 2, 3])
+        >>> sm_manager.read("new_data")
+        [1, 2, 3]
 
         :raises TypeError: If handle is not a string.
         :raises ValueError: If the handle is not located in the index.
@@ -478,7 +522,14 @@ class ShMem:
     def erase(self):
         """
         Deallocates all shared memory objects and the index for this shared memory manager's
-        :attr:`ShMem.shm_namespace`.
+        :attr:`ShMem.shm_namespace`. Used for cleanup, once we are finished with all our objects.
+
+        >>> from algos.io import ShMem
+        >>> sm_manager = ShMem("test")
+        >>> sm_manager.write("new_data", ["a", "b", "c"])
+        >>> sm_manager.read("new_data")
+        ['a', 'b', 'c']
+        >>> sm_manager.erase()
         """
         # Get the set of all allocated objects' handles.
         index: set[str] = self.read_index()
