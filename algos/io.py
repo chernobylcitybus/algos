@@ -387,6 +387,7 @@ class ShMem:
         """
         Reads an item from shared memory with the given handle.
 
+        :raises TypeError: If handle is not a string.
         :raises ValueError: If the handle is not located in the index.
         :param str handle: The string name of the region of shared memory.
         :rtype: Any
@@ -414,3 +415,35 @@ class ShMem:
 
         # Return the unpickled data.
         return data
+
+    def delete(self, handle: str) -> None:
+        """
+        Deletes an item from shared memory with the given handle.
+
+        :raises TypeError: If handle is not a string.
+        :raises ValueError: If the handle is not located in the index.
+        :param str handle: The string name of the region of shared memory.
+        """
+        # Check that the handle was given as a string.
+        if not isinstance(handle, str):
+            raise TypeError("Handle is not a valid string")
+
+        # Get the current index.
+        index: set[str] = self.read_index()
+
+        # Check if the handle has been allocated and raise if it wasn't.
+        if handle not in index:
+            raise ValueError("Handle " + handle + " has not been allocated within namespace " + self.shm_namespace)
+
+        # Get a memoryview of the object.
+        sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(self.shm_namespace + "_" + handle)
+
+        # Close and unlink the object.
+        sm_object.close()
+        sm_object.unlink()
+
+        # Delete the object from the index.
+        index.remove(handle)
+
+        # Write the updated index.
+        self.write_index(index)
