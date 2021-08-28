@@ -11,12 +11,15 @@ supported thus far are
 +-------------------------------------+----------------------------------------------------------------------------+
 
 """
+import os.path
 import sys
 import logging
 import pickle
-from typing import TypeVar, Any, Union, Optional
+import tempfile
+import mmap
+from typing import TypeVar, Any, Union, Optional, BinaryIO
 from multiprocessing import shared_memory
-
+from pathlib import Path
 
 # Set up the logger for the module
 logging.basicConfig(
@@ -261,39 +264,144 @@ class ShMem:
     to the object's shared memory string handle. Since all objects are tracked across processes, this allows us to
     deallocate all objects and prevent memory leaks.
 
+    On Windows it appears as if the index gets allocated correctly using :class:`.shared_memory.SharedMemory`, however,
+    subsequent writes do not seem to get processed. We emulate the behaviour of the :class:`.shared_memory.SharedMemory`
+    by using :mod:`mmap` on Windows. This will write the file handles to a temporary directory and create the required
+    memory mapped region. In the constructor, we can choose whether to use :mod:`mmap` or
+    :class:`.shared_memory.SharedMemory`. Default is :class:`.shared_memory.SharedMemory`.
+
     :ivar str shm_namespace: The name of the object in shared memory where the handles of the allocated objects reside.
-    :ivar .SharedMemory sm_index: A region of shared memory that allows us to keep track of our allocated objects.
+    :ivar str mem_type: Either one of "shm" or "mmap". Determines which type of shared memory we are using.
+                        Defaults to "shm" which represents :class:`.shared_memory.SharedMemory`. When equal to
+                        "mmap" uses :mod:`mmap`.
+    :ivar Optional[.SharedMemory] sm_index: A region of shared memory that allows us to keep track of our allocated
+                                            objects when using :class:`.shared_memory.SharedMemory`.
+    :ivar Optional[mmap.mmap] mm_index: A region of shared memory that allows us to keep track of our allocated objects
+                                        when using
+                                        :class:`mmap.mmap`.
+    :ivar Optional[str] index_dir: The temporary directory where memory mapped file handles are held.
     """
-    def __init__(self, shm_namespace: str):
+    def __init__(self, shm_namespace: str, mem_type: str = "shm"):
         """
         Initializes the shared memory reader. Checks if the shared memory namespace specified exists and
         if it does not, creates an empty index to keep track of all allocated objects. The shared memory index,
         named ``shm_namespace``, is present to ensure allocated objects can be cleaned up at the end of
         processing.
+
+        :param str shm_namespace: The name of the object in shared memory where the handles of the allocated objects
+                                  reside.
+        :param str mem_type: Either one of "shm" or "mmap". Determines which type of shared memory we are using.
+                             Defaults to "shm" which represents :class:`.shared_memory.SharedMemory`. When equal to
+                             "mmap" uses :mod:`mmap`.
         """
+        # Verify that the types of our inputs are correct.
+        if not isinstance(shm_namespace, str):
+            raise TypeError("Incorrect type for shm_namespace: " + str(type(shm_namespace)))
+
+        if not isinstance(mem_type, str):
+            raise TypeError("Incorrect type for mem_type: " + str(type(mem_type)))
+
+        # Check that we received a valid value for mem_type.
+        if mem_type not in ["shm", "mmap"]:
+            raise ValueError("Incorrect value specified for mem_type: " + mem_type)
+
         # Store namespace name for later use.
         self.shm_namespace: Optional[str] = shm_namespace
 
-        # Declare the type of the shared memory index.
-        self.sm_index: Optional[shared_memory.SharedMemory]
+        # Store the memory type for later use.
+        self.mem_type: str = mem_type
 
-        # If the index already exists
-        try:
-            # Attach to the shared memory object.
-            self.sm_index = shared_memory.SharedMemory(shm_namespace)
-        # Otherwise, the shared memory index has not been allocated
-        except FileNotFoundError:
-            # Create the index. We pickle in order to write to binary.
-            sm_index: bytes = pickle.dumps({shm_namespace})
+        # Declare the type of the shared memory index and initialize.
+        self.sm_index: Optional[shared_memory.SharedMemory] = None
 
-            # Get the length of the bytes object so that we may perform a copy.
-            n_sm_index: int = len(sm_index)
+        # Declare the memory map index and initialize.
+        self.mm_index: Optional[mmap.mmap] = None
 
-            # Create the shared memory region with the same size as the pickled index.
-            self.sm_index = shared_memory.SharedMemory(create=True, size=sys.getsizeof(sm_index), name=shm_namespace)
+        # Declare index_dir for mmap.
+        index_dir: Optional[str] = None
 
-            # Perform a copy of the data to the buffer.
-            self.sm_index.buf[:n_sm_index] = sm_index[:n_sm_index]
+        # If we are using multiprocessing shared memory
+        if self.mem_type == "shm":
+            # If the index already exists
+            try:
+                # Attach to the shared memory object.
+                self.sm_index = shared_memory.SharedMemory(shm_namespace)
+            # Otherwise, the shared memory index has not been allocated
+            except FileNotFoundError:
+                # Create the index. We pickle in order to write to binary.
+                sm_index: bytes = pickle.dumps({shm_namespace})
+
+                # Get the length of the bytes object so that we may perform a copy.
+                n_sm_index: int = len(sm_index)
+
+                # Create the shared memory region with the same size as the pickled index.
+                self.sm_index = shared_memory.SharedMemory(
+                    create=True,
+                    size=sys.getsizeof(sm_index),
+                    name=shm_namespace
+                )
+
+                # Perform a copy of the data to the buffer.
+                self.sm_index.buf[:n_sm_index] = sm_index[:n_sm_index]
+
+        # Otherwise we are using mmap
+        else:
+            # Declare a file descriptor to use for memory map.
+            fd: BinaryIO
+
+            # Get the path to the index. We use the path to the temp directory as returned by gettempdir().
+            # We append the namespace and the word "index" to that to have a directory for all the memory mapped
+            # files, with the index represented by the file named "mmap_index"
+            index_dir = os.path.join(tempfile.gettempdir(), self.shm_namespace)
+            index_path: str = os.path.join(index_dir, "mmap_index")
+
+            # Assign the index directory to an instance variable for later use.
+            self.index_dir = index_dir
+
+            # Create the parent namespace directory if it does not exist.
+            if not os.path.exists(index_dir):
+                Path(index_dir).mkdir(parents=True)
+
+            # If the index already exists:
+            if os.path.exists(index_path):
+                # Open the index and attach a mmap instance to the file.
+                fd = open(index_path, "r+b")
+                self.mm_index = mmap.mmap(fd.fileno(), 0)
+
+                # Close the file descriptor to free up resources.
+                fd.close()
+
+            # Otherwise the memory map index has not been created.
+            else:
+                # Open the file for reading and writing.
+                fd = open(index_path, "w+b")
+
+                # Zero out the file as we cannot memory map an empty file.
+                assert fd.write(b"\x00" * 1024) == 1024
+
+                # Flush the changes to disk.
+                fd.flush()
+
+                # Map the file to the index.
+                self.mm_index = mmap.mmap(fd.fileno(), 0)
+
+                # Close the file descriptor to free up resources.
+                fd.close()
+
+                # Create the initial index
+                init_index: bytes = pickle.dumps({shm_namespace})
+
+                # Resize the memory mapped file for the new data
+                self.mm_index.resize(sys.getsizeof(init_index))
+
+                # Write the first index entry to the memory mapped file.
+                self.mm_index.write(init_index)
+
+                # Make sure the data is flushed.
+                self.mm_index.flush()
+
+                # Seek back to the beginning of the file for the next operation.
+                self.mm_index.seek(os.SEEK_SET)
 
     def read_index(self) -> set[str]:
         """
@@ -311,7 +419,20 @@ class ShMem:
         # Check that the manager hasn't been deallocated already.
         self.check_self()
 
-        return pickle.loads(bytes(self.sm_index.buf))
+        # If we are using multiprocessing shared memory
+        if self.mem_type == "shm":
+            # Return the index from the sm_index buffer.
+            return pickle.loads(bytes(self.sm_index.buf))
+
+        # Otherwise we are using mmap
+        else:
+            # Read the data in the memory mapped file.
+            index: set[str] = pickle.loads(self.mm_index.read())
+
+            # Reset the file pointer for the next operation.
+            self.mm_index.seek(os.SEEK_SET)
+
+            return index
 
     def write_index(self, index: set[str]) -> None:
         """
@@ -324,21 +445,43 @@ class ShMem:
         # Check that the manager hasn't been deallocated already.
         self.check_self()
 
-        # Delete the previous index.
-        self.sm_index.close()
-        self.sm_index.unlink()
+        # If we are using multiprocessing shared memory
+        if self.mem_type == "shm":
+            # Delete the previous index.
+            self.sm_index.close()
+            self.sm_index.unlink()
 
-        # Write the index to binary representation.
-        sm_index: bytes = pickle.dumps(index)
+            # Write the index to binary representation.
+            sm_index: bytes = pickle.dumps(index)
 
-        # Get the length of the bytes object so that we may perform a copy.
-        n_sm_index: int = len(sm_index)
+            # Get the length of the bytes object so that we may perform a copy.
+            n_sm_index: int = len(sm_index)
 
-        # Create the shared memory region with the same size as the pickled index.
-        self.sm_index = shared_memory.SharedMemory(create=True, size=sys.getsizeof(sm_index), name=self.shm_namespace)
+            # Create the shared memory region with the same size as the pickled index.
+            self.sm_index = shared_memory.SharedMemory(
+                create=True,
+                size=sys.getsizeof(sm_index),
+                name=self.shm_namespace
+            )
 
-        # Perform a copy of the data to the buffer.
-        self.sm_index.buf[:n_sm_index] = sm_index[:n_sm_index]
+            # Perform a copy of the data to the buffer.
+            self.sm_index.buf[:n_sm_index] = sm_index[:n_sm_index]
+        # Otherwise we are using mmap
+        else:
+            # Create the initial index.
+            index_pickle: bytes = pickle.dumps(index)
+
+            # Resize the memory mapped file for the new data.
+            self.mm_index.resize(sys.getsizeof(index_pickle))
+
+            # Write the first index entry to the memory mapped file.
+            self.mm_index.write(index_pickle)
+
+            # Make sure the data is flushed.
+            self.mm_index.flush()
+
+            # Seek back to the beginning of the file for the next operation.
+            self.mm_index.seek(os.SEEK_SET)
 
     def append_index(self, index: str):
         """
@@ -392,20 +535,61 @@ class ShMem:
         # Get the length of the bytes object so that we may perform a copy.
         n_sm_obj: int = len(obj_pickle)
 
-        # We try to allocate shared memory of the correct size to the desired string handle.
-        # If we succeed
-        try:
-            # Create the shared memory region with the same size as the pickled object.
-            sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(
-                create=True, size=sys.getsizeof(obj_pickle), name=self.shm_namespace + "_" + index
-            )
-        # The shared memory handle already exists
-        except FileExistsError:
-            # Raise an exception with the already allocated index.
-            raise FileExistsError("The shared memory handle has already been used: " + index)
+        # If we are using multiprocessing shared memory
+        if self.mem_type == "shm":
+            # We try to allocate shared memory of the correct size to the desired string handle.
+            # If we succeed
+            try:
+                # Create the shared memory region with the same size as the pickled object.
+                sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(
+                    create=True, size=sys.getsizeof(obj_pickle), name=self.shm_namespace + "_" + index
+                )
+            # The shared memory handle already exists
+            except FileExistsError:
+                # Raise an exception with the already allocated index.
+                raise FileExistsError("The shared memory handle has already been used: " + index)
 
-        # Perform a copy of the data to the buffer.
-        sm_object.buf[:n_sm_obj] = obj_pickle[:n_sm_obj]
+            # Perform a copy of the data to the buffer.
+            sm_object.buf[:n_sm_obj] = obj_pickle[:n_sm_obj]
+
+        # Otherwise we are using mmap
+        else:
+            # We check if the file exists.
+            if os.path.exists(os.path.join(self.index_dir, index)):
+                raise FileExistsError("The shared memory handle has already been used: " + index)
+
+            # Open the file for reading and writing.
+            fd = open(os.path.join(self.index_dir, index), "w+b")
+
+            # Zero out the file as we cannot memory map an empty file.
+            assert fd.write(b"\x00" * 1024) == 1024
+
+            # Flush the changes to disk.
+            fd.flush()
+
+            # Seek to the beginning of the file.
+            fd.seek(os.SEEK_SET)
+
+            # Map the file to the index.
+            mmap_handle = mmap.mmap(fd.fileno(), 0)
+
+            # Close the file descriptor to free up resources.
+            fd.close()
+
+            # Pickle the object to write to the memory region.
+            pickled_data: bytes = pickle.dumps(obj)
+
+            # Resize the memory mapped file for the new data.
+            mmap_handle.resize(sys.getsizeof(pickled_data))
+
+            # Write the data to the memory mapped file.
+            mmap_handle.write(pickled_data)
+
+            # Make sure the data is flushed.
+            mmap_handle.flush()
+
+            # Seek back to the beginning of the file for the next operation.
+            mmap_handle.seek(os.SEEK_SET)
 
         # Append the new index to the old index.
         self.append_index(index)
@@ -441,14 +625,36 @@ class ShMem:
         if handle not in index:
             raise ValueError("Handle " + handle + " has not been allocated within namespace " + self.shm_namespace)
 
-        # Get a memoryview of the object.
-        sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(self.shm_namespace + "_" + handle)
+        # Declare the type of the data as Any (since it can be anything)
+        data: Any
 
-        # Unpickle the data
-        data: Any = pickle.loads(bytes(sm_object.buf))
+        # Declare a memory map handle if we are using mmap.
+        mmap_handle: Optional[mmap.mmap] = None
 
-        # Cleanup the handle to the shared memory object.
-        sm_object.close()
+        # If we are using multiprocessing shared memory
+        if self.mem_type == "shm":
+            # Get a memoryview of the object.
+            sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(self.shm_namespace + "_" + handle)
+
+            # Unpickle the data.
+            data = pickle.loads(bytes(sm_object.buf))
+
+            # Cleanup the handle to the shared memory object.
+            sm_object.close()
+
+        # Otherwise we are using mmap
+        else:
+            # Open the file for reading and writing.
+            fd = open(os.path.join(self.index_dir, handle), "r+b")
+
+            # Map the file to the index.
+            mmap_handle = mmap.mmap(fd.fileno(), 0)
+
+            # Close the file descriptor to free up resources.
+            fd.close()
+
+            # Unpickle the data
+            data = pickle.loads(mmap_handle.read())
 
         # Return the unpickled data.
         return data
@@ -488,12 +694,31 @@ class ShMem:
         if handle not in index:
             raise ValueError("Handle " + handle + " has not been allocated within namespace " + self.shm_namespace)
 
-        # Get a memoryview of the object.
-        sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(self.shm_namespace + "_" + handle)
+        # If we are using multiprocessing shared memory
+        if self.mem_type == "shm":
+            # Get a memoryview of the object.
+            sm_object: shared_memory.SharedMemory = shared_memory.SharedMemory(self.shm_namespace + "_" + handle)
 
-        # Close and unlink the object.
-        sm_object.close()
-        sm_object.unlink()
+            # Close and unlink the object.
+            sm_object.close()
+            sm_object.unlink()
+
+        # Otherwise we are using mmap
+        else:
+            # Open the file for reading and writing.
+            fd = open(os.path.join(self.index_dir, handle), "r+b")
+
+            # Map the file to the index.
+            mmap_handle = mmap.mmap(fd.fileno(), 0)
+
+            # Close the mmap handle.
+            mmap_handle.close()
+
+            # Close the file descriptor.
+            fd.close()
+
+            # Delete the file handle from the file system.
+            os.unlink(os.path.join(self.index_dir, handle))
 
         # Delete the object from the index.
         index.remove(handle)
@@ -566,11 +791,24 @@ class ShMem:
         for handle in index:
             self.delete(handle)
 
-        # Remove the index.
-        self.sm_index.close()
-        self.sm_index.unlink()
+        if self.mem_type == "shm":
+            # Remove the index.
+            self.sm_index.close()
+            self.sm_index.unlink()
+        else:
+            # Close the memory mapped file.
+            self.mm_index.close()
+
+            # Delete the file handle from the filesystem.
+            os.unlink(os.path.join(self.index_dir, "mmap_index"))
+
+            # Delete the index directory also.
+            os.rmdir(self.index_dir)
+
+        # Delete the instance variables.
         del self.sm_index
         del self.shm_namespace
+        del self.mm_index
 
     def check_self(self):
         """
