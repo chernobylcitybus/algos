@@ -58,6 +58,9 @@ class MockHTTPConnection:
     one worker process is used. Further, we can also assign a :class:`.Callable` as the buffer. This uses the request
     body, as in the dict case, but passes it to a function that produces the server's expected response.
 
+    The function signature for function handlers should be ``func(self, json_request_body: bytes) -> bytes``. This
+    is because they are bound methods with regards to :class:`.MockHTTPConnection`.
+
     :ivar str hostname: The hostname of the remote server. Just stores this because it is parsed in through the
                         function signature.
     :ivar str hostname: The port of the remote server. Just stores this because it is parsed in through the
@@ -122,10 +125,7 @@ class MockHTTPConnection:
             mock_res = MockHTTPResponse(self.buffer[self.current_request])
         elif isinstance(self.buffer, Callable):
             # Use the callable to figure out the response. The callable should return a bytes object.
-            print(self.current_request)
-            print(self.buffer)
             response = self.buffer(self.current_request)
-            print(response)
             mock_res = MockHTTPResponse(response)
         return mock_res
 
