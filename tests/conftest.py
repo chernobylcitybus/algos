@@ -10,6 +10,8 @@ import threading
 import time
 import os
 import subprocess
+from typing import Optional, Union, Any
+from collections.abc import Callable
 
 
 class MockHTTPResponse:
@@ -53,7 +55,8 @@ class MockHTTPConnection:
     The buffer is used by the tests to store the expected server responses. It can be a simple bytes object or a
     list of bytes objects. It can also be a dictionary in a multiprocessing situation, when the request body is used
     as the key that produces the server's expected response as a value. This stops race conditions when more than
-    one worker process is used.
+    one worker process is used. Further, we can also assign a :class:`.Callable` as the buffer. This uses the request
+    body, as in the dict case, but passes it to a function that produces the server's expected response.
 
     :ivar str hostname: The hostname of the remote server. Just stores this because it is parsed in through the
                         function signature.
@@ -62,6 +65,9 @@ class MockHTTPConnection:
     :ivar bytes current_request: The json body of the request that was made to the connection. Used when in a
                                  multiprocessing situation so that multiple processes get the correct out of order
                                  responses, as reading from a buffer linearly is a race condition.
+    :cvar Union[bytes, list[bytes], dict[Any, bytes], Callable[[bytes], bytes]] buffer: The buffer which allows the
+                                                                                        different response models to be
+                                                                                        used.
 
     .. automethod:: __init__
 
@@ -100,8 +106,8 @@ class MockHTTPConnection:
 
     def getresponse(self):
         """
-        Return the expected response for the tests. Handles the cases that the buffer is a bytes object, list or
-        dictionary, depending on which the current test chooses to use.
+        Return the expected response for the tests. Handles the cases that the buffer is a bytes object, list,
+        dictionary or callable depending on which the current test chooses to use.
 
         :return: Server expected response.
         """
@@ -114,6 +120,13 @@ class MockHTTPConnection:
         elif isinstance(self.buffer, dict):
             # Use the body of the request as the key to find the value of the expected response.
             mock_res = MockHTTPResponse(self.buffer[self.current_request])
+        elif isinstance(self.buffer, Callable):
+            # Use the callable to figure out the response. The callable should return a bytes object.
+            print(self.current_request)
+            print(self.buffer)
+            response = self.buffer(self.current_request)
+            print(response)
+            mock_res = MockHTTPResponse(response)
         return mock_res
 
     def close(self):
