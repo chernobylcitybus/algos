@@ -79,3 +79,4 @@ def anagrams(word_set: set[str]) -> list[list[str]]:
 
     # Return the lists of words for signatures that had more than one entry.
     return [d[s] for s in d if len(d[s]) > 1]
+

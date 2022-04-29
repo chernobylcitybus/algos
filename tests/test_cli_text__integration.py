@@ -70,7 +70,7 @@ class TestAnagrams:
         stdin_input = " ".join(list(test_input))
 
         # Run a subprocess with the command line
-        captured = subprocess.check_output("echo \"" + stdin_input + "\" | algos-text anagrams", shell=True)
+        captured = subprocess.check_output(f"echo {stdin_input} | algos-text anagrams", shell=True)
 
         # Decode to string.
         if isinstance(captured, bytes):
